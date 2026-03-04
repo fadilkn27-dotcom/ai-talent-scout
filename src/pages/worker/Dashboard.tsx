@@ -8,7 +8,10 @@ import { ScoreBar } from "@/components/ScoreBar";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { workerTasks, aiEvaluationMessages, generateAIScore } from "@/lib/mock-data";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/hooks/use-toast";
+import { aiEvaluationMessages, generateAIScore } from "@/lib/mock-data";
 
 const defaultCode = `# Write your solution here
 def solution(arr):
@@ -21,15 +24,50 @@ def solution(arr):
 # Test
 print(solution([3, 1, 4, 1, 5, 9]))`;
 
+interface AssignedTask {
+  id: string; // assignment id
+  assessment_id: string;
+  status: string;
+  title: string;
+  role: string;
+  difficulty: string;
+  skills: string[];
+  coding_questions: string[] | null;
+}
+
+interface PastEvaluation {
+  id: string;
+  overall_score: number;
+  syntax_score: number;
+  logic_score: number;
+  complexity_score: number;
+  performance_score: number;
+  recommendation: string;
+  feedback: string[] | null;
+  evaluated_at: string;
+  assessment_title: string;
+}
+
 export default function WorkerDashboard() {
-  const [selectedTask, setSelectedTask] = useState(workerTasks[0]);
+  const { user } = useAuth();
+  const [tasks, setTasks] = useState<AssignedTask[]>([]);
+  const [pastEvals, setPastEvals] = useState<PastEvaluation[]>([]);
+  const [selectedTask, setSelectedTask] = useState<AssignedTask | null>(null);
   const [code, setCode] = useState(defaultCode);
   const [language, setLanguage] = useState("python");
-  const [timeLeft, setTimeLeft] = useState(selectedTask.timeLimit * 60);
+  const [timeLeft, setTimeLeft] = useState(45 * 60);
   const [timerActive, setTimerActive] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [analysisStep, setAnalysisStep] = useState(-1);
   const [result, setResult] = useState<ReturnType<typeof generateAIScore> | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetchTasks();
+      fetchPastEvaluations();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!timerActive || timeLeft <= 0) return;
@@ -37,18 +75,96 @@ export default function WorkerDashboard() {
     return () => clearInterval(t);
   }, [timerActive, timeLeft]);
 
+  async function fetchTasks() {
+    const { data, error } = await supabase
+      .from("assessment_assignments")
+      .select("id, assessment_id, status, assessments!inner(title, role, difficulty, skills, coding_questions)")
+      .eq("worker_id", user!.id);
+
+    if (!error && data) {
+      setTasks(data.map((d: any) => ({
+        id: d.id,
+        assessment_id: d.assessment_id,
+        status: d.status,
+        title: d.assessments.title,
+        role: d.assessments.role,
+        difficulty: d.assessments.difficulty,
+        skills: d.assessments.skills,
+        coding_questions: d.assessments.coding_questions,
+      })));
+    }
+    setLoading(false);
+  }
+
+  async function fetchPastEvaluations() {
+    const { data, error } = await supabase
+      .from("evaluations")
+      .select("*, assessment_assignments!inner(assessment_id, assessments!inner(title))")
+      .eq("worker_id", user!.id)
+      .order("evaluated_at", { ascending: false });
+
+    if (!error && data) {
+      setPastEvals(data.map((e: any) => ({
+        id: e.id,
+        overall_score: e.overall_score,
+        syntax_score: e.syntax_score,
+        logic_score: e.logic_score,
+        complexity_score: e.complexity_score,
+        performance_score: e.performance_score,
+        recommendation: e.recommendation,
+        feedback: e.feedback,
+        evaluated_at: e.evaluated_at,
+        assessment_title: e.assessment_assignments?.assessments?.title || "",
+      })));
+    }
+  }
+
   const formatTime = (s: number) => `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
 
   const handleSubmit = useCallback(async () => {
+    if (!selectedTask || !user) return;
     setSubmitting(true);
     setTimerActive(false);
+
     for (let i = 0; i < aiEvaluationMessages.length; i++) {
       setAnalysisStep(i);
       await new Promise((r) => setTimeout(r, 800));
     }
-    setResult(generateAIScore());
+
+    const scores = generateAIScore();
+    setResult(scores);
+
+    // Save to database
+    const { error } = await supabase.from("evaluations").insert({
+      assignment_id: selectedTask.id,
+      worker_id: user.id,
+      syntax_score: scores.syntax,
+      logic_score: scores.logic,
+      complexity_score: scores.complexity,
+      performance_score: scores.performance,
+      overall_score: scores.overall,
+      recommendation: scores.recommendation,
+      feedback: scores.feedback,
+      code_submitted: code,
+      language,
+      status: scores.recommendation === "Selected" ? "selected" : scores.recommendation === "Rejected" ? "rejected" : "review",
+    });
+
+    if (error) {
+      toast({ title: "Error saving evaluation", description: error.message, variant: "destructive" });
+    } else {
+      // Update assignment status
+      await supabase.from("assessment_assignments").update({ status: "completed" }).eq("id", selectedTask.id);
+      toast({ title: "Solution submitted and evaluated!" });
+      fetchTasks();
+      fetchPastEvaluations();
+    }
+
     setSubmitting(false);
-  }, []);
+  }, [selectedTask, user, code, language]);
+
+  const pendingTasks = tasks.filter((t) => t.status === "pending");
+  const completedTasks = tasks.filter((t) => t.status === "completed");
 
   return (
     <DashboardLayout>
@@ -59,9 +175,9 @@ export default function WorkerDashboard() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
-          <StatCard title="Assigned Tasks" value={workerTasks.length} icon={<FileText className="h-5 w-5" />} delay={0} />
-          <StatCard title="Completed" value={workerTasks.filter((t) => t.status === "completed").length} icon={<CheckCircle className="h-5 w-5" />} delay={0.1} />
-          <StatCard title="Pending" value={workerTasks.filter((t) => t.status === "pending").length} icon={<Clock className="h-5 w-5" />} delay={0.2} />
+          <StatCard title="Assigned Tasks" value={tasks.length} icon={<FileText className="h-5 w-5" />} delay={0} />
+          <StatCard title="Completed" value={completedTasks.length} icon={<CheckCircle className="h-5 w-5" />} delay={0.1} />
+          <StatCard title="Pending" value={pendingTasks.length} icon={<Clock className="h-5 w-5" />} delay={0.2} />
         </div>
 
         <Tabs defaultValue="tasks" className="space-y-6">
@@ -73,132 +189,167 @@ export default function WorkerDashboard() {
 
           <TabsContent value="tasks">
             <div className="space-y-4">
-              {workerTasks.map((task, i) => (
+              {loading ? (
+                <p className="text-muted-foreground">Loading...</p>
+              ) : tasks.length === 0 ? (
+                <div className="rounded-xl border bg-card p-8 text-center shadow-card">
+                  <FileText className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
+                  <p className="text-muted-foreground">No tasks assigned yet. Check back later.</p>
+                </div>
+              ) : tasks.map((task, i) => (
                 <motion.div key={task.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                   className="flex items-center justify-between rounded-xl border bg-card p-5 shadow-card cursor-pointer hover:shadow-elevated transition-shadow"
-                  onClick={() => { setSelectedTask(task); setTimeLeft(task.timeLimit * 60); setResult(null); setAnalysisStep(-1); }}
+                  onClick={() => { setSelectedTask(task); setTimeLeft(45 * 60); setResult(null); setAnalysisStep(-1); setCode(defaultCode); }}
                 >
                   <div className="space-y-1">
                     <h3 className="font-semibold text-card-foreground">{task.title}</h3>
-                    <p className="text-sm text-muted-foreground">{task.assessment} • {task.language} • {task.timeLimit} min</p>
-                    <p className="text-xs text-muted-foreground">{task.description}</p>
+                    <p className="text-sm text-muted-foreground">{task.role} • {task.difficulty} • {task.skills.join(", ")}</p>
                   </div>
-                  <StatusBadge status={task.status} />
+                  <StatusBadge status={task.status === "completed" ? "completed" : "pending"} />
                 </motion.div>
               ))}
             </div>
           </TabsContent>
 
           <TabsContent value="editor">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <h2 className="text-lg font-semibold text-foreground">{selectedTask.title}</h2>
-                  <Select value={language} onValueChange={setLanguage}>
-                    <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="python">Python</SelectItem>
-                      <SelectItem value="java">Java</SelectItem>
-                      <SelectItem value="cpp">C++</SelectItem>
-                      <SelectItem value="javascript">JavaScript</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 font-mono text-sm ${timeLeft < 300 ? "border-destructive/30 bg-destructive/5 text-destructive" : "border-border bg-muted text-card-foreground"}`}>
-                    <Clock className="h-3.5 w-3.5" />
-                    {formatTime(timeLeft)}
+            {!selectedTask ? (
+              <div className="rounded-xl border bg-card p-8 text-center shadow-card">
+                <Code2 className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
+                <p className="text-muted-foreground">Select a task from "My Tasks" to start coding.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <h2 className="text-lg font-semibold text-foreground">{selectedTask.title}</h2>
+                    <Select value={language} onValueChange={setLanguage}>
+                      <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="python">Python</SelectItem>
+                        <SelectItem value="java">Java</SelectItem>
+                        <SelectItem value="cpp">C++</SelectItem>
+                        <SelectItem value="javascript">JavaScript</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  {!timerActive && !submitting && (
-                    <Button size="sm" variant="outline" onClick={() => setTimerActive(true)}>
-                      <Play className="mr-1.5 h-3.5 w-3.5" />Start Timer
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-xl border bg-card shadow-card overflow-hidden">
-                <div className="border-b bg-muted/50 px-4 py-2 text-xs text-muted-foreground font-mono flex items-center gap-2">
-                  <Code2 className="h-3.5 w-3.5" />
-                  {language === "python" ? "solution.py" : language === "java" ? "Solution.java" : language === "cpp" ? "solution.cpp" : "solution.js"}
-                </div>
-                <textarea
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  className="w-full min-h-[400px] bg-card p-4 font-mono text-sm text-card-foreground resize-none focus:outline-none leading-relaxed"
-                  spellCheck={false}
-                />
-              </div>
-
-              <div className="flex justify-end">
-                <Button onClick={handleSubmit} disabled={submitting} className="gradient-primary border-0 text-primary-foreground shadow-glow">
-                  <Send className="mr-1.5 h-4 w-4" />
-                  {submitting ? "Submitting…" : "Submit Solution"}
-                </Button>
-              </div>
-
-              {/* AI Analysis */}
-              <AnimatePresence>
-                {(submitting || result) && (
-                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border bg-card p-6 shadow-card">
-                    <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-card-foreground">
-                      {submitting && <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />}
-                      {result && <CheckCircle className="h-4 w-4 text-success" />}
-                      AI Evaluation {submitting ? "in Progress…" : "Complete"}
-                    </h3>
-
-                    {submitting && (
-                      <div className="space-y-2">
-                        {aiEvaluationMessages.map((msg, i) => (
-                          <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: i <= analysisStep ? 1 : 0.3, x: 0 }} transition={{ delay: 0.1 }} className="flex items-center gap-2 text-sm">
-                            {i <= analysisStep ? <CheckCircle className="h-3.5 w-3.5 text-success shrink-0" /> : <div className="h-3.5 w-3.5 rounded-full border border-muted-foreground/30 shrink-0" />}
-                            <span className={i <= analysisStep ? "text-card-foreground" : "text-muted-foreground"}>{msg}</span>
-                          </motion.div>
-                        ))}
-                      </div>
+                  <div className="flex items-center gap-3">
+                    <div className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 font-mono text-sm ${timeLeft < 300 ? "border-destructive/30 bg-destructive/5 text-destructive" : "border-border bg-muted text-card-foreground"}`}>
+                      <Clock className="h-3.5 w-3.5" />
+                      {formatTime(timeLeft)}
+                    </div>
+                    {!timerActive && !submitting && (
+                      <Button size="sm" variant="outline" onClick={() => setTimerActive(true)}>
+                        <Play className="mr-1.5 h-3.5 w-3.5" />Start Timer
+                      </Button>
                     )}
+                  </div>
+                </div>
 
-                    {result && (
-                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <ScoreBar label="Syntax Analysis" score={result.syntax} delay={0.1} />
-                          <ScoreBar label="Logical Analysis" score={result.logic} delay={0.2} />
-                          <ScoreBar label="Complexity Score" score={result.complexity} delay={0.3} />
-                          <ScoreBar label="Performance Score" score={result.performance} delay={0.4} />
+                <div className="rounded-xl border bg-card shadow-card overflow-hidden">
+                  <div className="border-b bg-muted/50 px-4 py-2 text-xs text-muted-foreground font-mono flex items-center gap-2">
+                    <Code2 className="h-3.5 w-3.5" />
+                    {language === "python" ? "solution.py" : language === "java" ? "Solution.java" : language === "cpp" ? "solution.cpp" : "solution.js"}
+                  </div>
+                  <textarea
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    className="w-full min-h-[400px] bg-card p-4 font-mono text-sm text-card-foreground resize-none focus:outline-none leading-relaxed"
+                    spellCheck={false}
+                  />
+                </div>
+
+                <div className="flex justify-end">
+                  <Button onClick={handleSubmit} disabled={submitting || selectedTask.status === "completed"} className="gradient-primary border-0 text-primary-foreground shadow-glow">
+                    <Send className="mr-1.5 h-4 w-4" />
+                    {submitting ? "Submitting…" : selectedTask.status === "completed" ? "Already Submitted" : "Submit Solution"}
+                  </Button>
+                </div>
+
+                <AnimatePresence>
+                  {(submitting || result) && (
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border bg-card p-6 shadow-card">
+                      <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-card-foreground">
+                        {submitting && <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />}
+                        {result && <CheckCircle className="h-4 w-4 text-success" />}
+                        AI Evaluation {submitting ? "in Progress…" : "Complete"}
+                      </h3>
+
+                      {submitting && (
+                        <div className="space-y-2">
+                          {aiEvaluationMessages.map((msg, i) => (
+                            <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: i <= analysisStep ? 1 : 0.3, x: 0 }} transition={{ delay: 0.1 }} className="flex items-center gap-2 text-sm">
+                              {i <= analysisStep ? <CheckCircle className="h-3.5 w-3.5 text-success shrink-0" /> : <div className="h-3.5 w-3.5 rounded-full border border-muted-foreground/30 shrink-0" />}
+                              <span className={i <= analysisStep ? "text-card-foreground" : "text-muted-foreground"}>{msg}</span>
+                            </motion.div>
+                          ))}
                         </div>
+                      )}
 
-                        <div className="rounded-lg bg-muted p-4 text-center">
-                          <p className="text-3xl font-bold text-card-foreground">{result.overall}%</p>
-                          <p className="text-sm text-muted-foreground">Overall Rating</p>
-                          <p className={`mt-1 text-sm font-semibold ${result.recommendation === "Selected" ? "text-success" : result.recommendation === "Rejected" ? "text-destructive" : "text-warning"}`}>
-                            {result.recommendation}
-                          </p>
-                        </div>
-
-                        <div>
-                          <h4 className="mb-2 font-semibold text-card-foreground flex items-center gap-1.5">
-                            <AlertTriangle className="h-4 w-4 text-warning" />
-                            AI Technical Feedback
-                          </h4>
-                          <div className="space-y-2">
-                            {result.feedback.map((f, i) => (
-                              <p key={i} className="rounded-lg bg-muted p-3 text-sm text-card-foreground">{f}</p>
-                            ))}
+                      {result && (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                          <div className="grid gap-4 sm:grid-cols-2">
+                            <ScoreBar label="Syntax Analysis" score={result.syntax} delay={0.1} />
+                            <ScoreBar label="Logical Analysis" score={result.logic} delay={0.2} />
+                            <ScoreBar label="Complexity Score" score={result.complexity} delay={0.3} />
+                            <ScoreBar label="Performance Score" score={result.performance} delay={0.4} />
                           </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                          <div className="rounded-lg bg-muted p-4 text-center">
+                            <p className="text-3xl font-bold text-card-foreground">{result.overall}%</p>
+                            <p className="text-sm text-muted-foreground">Overall Rating</p>
+                            <p className={`mt-1 text-sm font-semibold ${result.recommendation === "Selected" ? "text-success" : result.recommendation === "Rejected" ? "text-destructive" : "text-warning"}`}>
+                              {result.recommendation}
+                            </p>
+                          </div>
+                          <div>
+                            <h4 className="mb-2 font-semibold text-card-foreground flex items-center gap-1.5">
+                              <AlertTriangle className="h-4 w-4 text-warning" />
+                              AI Technical Feedback
+                            </h4>
+                            <div className="space-y-2">
+                              {result.feedback.map((f, i) => (
+                                <p key={i} className="rounded-lg bg-muted p-3 text-sm text-card-foreground">{f}</p>
+                              ))}
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="results">
-            <div className="rounded-xl border bg-card p-6 shadow-card text-center">
-              <CheckCircle className="mx-auto mb-4 h-12 w-12 text-muted-foreground/30" />
-              <p className="text-muted-foreground">Complete a task in the Code Editor to see your results here.</p>
-            </div>
+            {pastEvals.length === 0 ? (
+              <div className="rounded-xl border bg-card p-6 shadow-card text-center">
+                <CheckCircle className="mx-auto mb-4 h-12 w-12 text-muted-foreground/30" />
+                <p className="text-muted-foreground">Complete a task to see your results here.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {pastEvals.map((ev, i) => (
+                  <motion.div key={ev.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="rounded-xl border bg-card p-5 shadow-card">
+                    <div className="mb-3 flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-card-foreground">{ev.assessment_title}</h3>
+                        <p className="text-sm text-muted-foreground">{new Date(ev.evaluated_at).toLocaleDateString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-card-foreground">{ev.overall_score}%</p>
+                        <p className={`text-sm font-semibold ${ev.recommendation === "Selected" ? "text-success" : ev.recommendation === "Rejected" ? "text-destructive" : "text-warning"}`}>{ev.recommendation}</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-4 gap-4">
+                      <ScoreBar label="Syntax" score={ev.syntax_score} />
+                      <ScoreBar label="Logic" score={ev.logic_score} />
+                      <ScoreBar label="Complexity" score={ev.complexity_score} />
+                      <ScoreBar label="Performance" score={ev.performance_score} />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
