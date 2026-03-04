@@ -14,16 +14,205 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      assessment_assignments: {
+        Row: {
+          assessment_id: string
+          assigned_at: string
+          assigned_by: string
+          id: string
+          status: string
+          worker_id: string
+        }
+        Insert: {
+          assessment_id: string
+          assigned_at?: string
+          assigned_by: string
+          id?: string
+          status?: string
+          worker_id: string
+        }
+        Update: {
+          assessment_id?: string
+          assigned_at?: string
+          assigned_by?: string
+          id?: string
+          status?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_assignments_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessments: {
+        Row: {
+          algorithm_problems: string[] | null
+          coding_questions: string[] | null
+          created_at: string
+          created_by: string
+          difficulty: string
+          id: string
+          mcqs: string[] | null
+          questions_count: number
+          role: string
+          skills: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          algorithm_problems?: string[] | null
+          coding_questions?: string[] | null
+          created_at?: string
+          created_by: string
+          difficulty?: string
+          id?: string
+          mcqs?: string[] | null
+          questions_count?: number
+          role?: string
+          skills?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          algorithm_problems?: string[] | null
+          coding_questions?: string[] | null
+          created_at?: string
+          created_by?: string
+          difficulty?: string
+          id?: string
+          mcqs?: string[] | null
+          questions_count?: number
+          role?: string
+          skills?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      evaluations: {
+        Row: {
+          assignment_id: string
+          code_submitted: string | null
+          complexity_score: number
+          evaluated_at: string
+          feedback: string[] | null
+          id: string
+          language: string | null
+          logic_score: number
+          overall_score: number
+          performance_score: number
+          recommendation: string
+          status: string
+          syntax_score: number
+          worker_id: string
+        }
+        Insert: {
+          assignment_id: string
+          code_submitted?: string | null
+          complexity_score?: number
+          evaluated_at?: string
+          feedback?: string[] | null
+          id?: string
+          language?: string | null
+          logic_score?: number
+          overall_score?: number
+          performance_score?: number
+          recommendation?: string
+          status?: string
+          syntax_score?: number
+          worker_id: string
+        }
+        Update: {
+          assignment_id?: string
+          code_submitted?: string | null
+          complexity_score?: number
+          evaluated_at?: string
+          feedback?: string[] | null
+          id?: string
+          language?: string | null
+          logic_score?: number
+          overall_score?: number
+          performance_score?: number
+          recommendation?: string
+          status?: string
+          syntax_score?: number
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluations_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_assignments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "client" | "worker" | "hr"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +339,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["client", "worker", "hr"],
+    },
   },
 } as const
