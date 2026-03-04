@@ -72,9 +72,6 @@ export default function Landing() {
                   Start Evaluating <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10">
-                Watch Demo
-              </Button>
             </div>
           </motion.div>
         </div>
