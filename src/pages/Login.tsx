@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 const roles: { value: UserRole; label: string; description: string; icon: React.ElementType }[] = [
   { value: "client", label: "Task Creator", description: "Create & manage assessments", icon: User },
@@ -18,16 +19,30 @@ export default function Login() {
   const [selectedRole, setSelectedRole] = useState<UserRole>("client");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const [isSignup, setIsSignup] = useState(false);
+  const { login, signup } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await login(email, password, selectedRole);
-    setLoading(false);
-    navigate(selectedRole === "client" ? "/client" : selectedRole === "worker" ? "/worker" : "/hr");
+    try {
+      if (isSignup) {
+        await signup(email, password, fullName, selectedRole);
+        toast({ title: "Account created!", description: "Check your email to confirm, then sign in." });
+        setIsSignup(false);
+      } else {
+        await login(email, password);
+        // Navigation will happen via auth state change + ProtectedRoute
+      }
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -53,46 +68,61 @@ export default function Login() {
       <div className="flex flex-1 flex-col items-center justify-center p-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
           <div className="mb-8 text-center lg:text-left">
-            <h1 className="mb-2 text-2xl font-bold text-foreground">Welcome back</h1>
-            <p className="text-muted-foreground">Select your role and sign in to continue.</p>
+            <h1 className="mb-2 text-2xl font-bold text-foreground">
+              {isSignup ? "Create your account" : "Welcome back"}
+            </h1>
+            <p className="text-muted-foreground">
+              {isSignup ? "Select your role and create an account." : "Sign in to continue."}
+            </p>
           </div>
 
-          {/* Role selector */}
-          <div className="mb-6 grid grid-cols-3 gap-3">
-            {roles.map((r) => (
-              <button
-                key={r.value}
-                onClick={() => setSelectedRole(r.value)}
-                className={cn(
-                  "flex flex-col items-center gap-2 rounded-xl border p-4 text-center transition-all",
-                  selectedRole === r.value
-                    ? "border-primary bg-primary/5 shadow-glow"
-                    : "border-border hover:border-primary/30 hover:bg-muted/50"
-                )}
-              >
-                <r.icon className={cn("h-5 w-5", selectedRole === r.value ? "text-primary" : "text-muted-foreground")} />
-                <span className={cn("text-xs font-semibold", selectedRole === r.value ? "text-primary" : "text-foreground")}>{r.label}</span>
-                <span className="text-[10px] leading-tight text-muted-foreground">{r.description}</span>
-              </button>
-            ))}
-          </div>
+          {/* Role selector (signup only) */}
+          {isSignup && (
+            <div className="mb-6 grid grid-cols-3 gap-3">
+              {roles.map((r) => (
+                <button
+                  key={r.value}
+                  onClick={() => setSelectedRole(r.value)}
+                  className={cn(
+                    "flex flex-col items-center gap-2 rounded-xl border p-4 text-center transition-all",
+                    selectedRole === r.value
+                      ? "border-primary bg-primary/5 shadow-glow"
+                      : "border-border hover:border-primary/30 hover:bg-muted/50"
+                  )}
+                >
+                  <r.icon className={cn("h-5 w-5", selectedRole === r.value ? "text-primary" : "text-muted-foreground")} />
+                  <span className={cn("text-xs font-semibold", selectedRole === r.value ? "text-primary" : "text-foreground")}>{r.label}</span>
+                  <span className="text-[10px] leading-tight text-muted-foreground">{r.description}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignup && (
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Full Name</Label>
+                <Input id="fullName" placeholder="John Doe" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
             </div>
             <Button type="submit" disabled={loading} className="w-full gradient-primary border-0 text-primary-foreground shadow-glow">
-              {loading ? "Signing in…" : "Sign In"}
+              {loading ? (isSignup ? "Creating account…" : "Signing in…") : (isSignup ? "Create Account" : "Sign In")}
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-xs text-muted-foreground">
-            Demo mode — enter any credentials to sign in with the selected role.
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
+            <button onClick={() => setIsSignup(!isSignup)} className="font-semibold text-primary hover:underline">
+              {isSignup ? "Sign In" : "Sign Up"}
+            </button>
           </p>
         </motion.div>
       </div>

@@ -119,7 +119,7 @@ export function AppSidebar() {
         <Button
           variant="ghost"
           size={collapsed ? "icon" : "default"}
-          onClick={logout}
+          onClick={() => logout()}
           className="w-full justify-start text-sidebar-foreground/60 hover:text-destructive hover:bg-destructive/10"
         >
           <LogOut className="h-4 w-4 shrink-0" />
