@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { FileText, Users, CheckCircle, BarChart3, Brain, Plus, Trash2, Edit, Eye } from "lucide-react";
+import { FileText, Users, CheckCircle, BarChart3, Brain, Plus, Trash2, Edit, Eye, UserPlus } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -67,6 +67,12 @@ export default function ClientDashboard() {
   const [newRole, setNewRole] = useState("");
   const [newSkills, setNewSkills] = useState("");
   const [newDifficulty, setNewDifficulty] = useState("Medium");
+
+  // Assign dialog state
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [assignAssessmentId, setAssignAssessmentId] = useState("");
+  const [assignEmail, setAssignEmail] = useState("");
+  const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
     fetchAssessments();
@@ -148,6 +154,48 @@ export default function ClientDashboard() {
       setAssessments((prev) => prev.filter((a) => a.id !== id));
       toast({ title: "Assessment deleted" });
     }
+  }
+  async function handleAssignCandidate() {
+    if (!assignEmail || !assignAssessmentId || !user) return;
+    setAssigning(true);
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", assignEmail.trim())
+      .single();
+
+    if (profileError || !profile) {
+      toast({ title: "Candidate not found", description: "No account exists with that email. Make sure the candidate has signed up first.", variant: "destructive" });
+      setAssigning(false);
+      return;
+    }
+
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", profile.id)
+      .single();
+
+    if (roleData?.role !== "worker") {
+      toast({ title: "Not a candidate", description: "That user is not registered as a candidate.", variant: "destructive" });
+      setAssigning(false);
+      return;
+    }
+
+    const { error } = await supabase.from("assessment_assignments").insert({
+      assessment_id: assignAssessmentId,
+      worker_id: profile.id,
+      assigned_by: user.id,
+    });
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Assessment assigned!", description: `Assigned to ${assignEmail}` });
+      setAssignOpen(false);
+      setAssignEmail("");
+    }
+    setAssigning(false);
   }
 
   const handleGenerate = async () => {
@@ -261,6 +309,9 @@ export default function ClientDashboard() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => { setAssignAssessmentId(a.id); setAssignOpen(true); }}>
+                          <UserPlus className="mr-1.5 h-3.5 w-3.5" />Assign
+                        </Button>
                         <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteAssessment(a.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -398,6 +449,23 @@ export default function ClientDashboard() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Assign Dialog */}
+        <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Assign to Candidate</DialogTitle></DialogHeader>
+            <div className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <Label>Candidate Email</Label>
+                <Input type="email" placeholder="candidate@example.com" value={assignEmail} onChange={(e) => setAssignEmail(e.target.value)} />
+              </div>
+              <p className="text-xs text-muted-foreground">The candidate must have already signed up as a "Candidate" role.</p>
+              <Button onClick={handleAssignCandidate} disabled={assigning || !assignEmail} className="w-full gradient-primary border-0 text-primary-foreground">
+                {assigning ? "Assigning…" : "Assign Assessment"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
