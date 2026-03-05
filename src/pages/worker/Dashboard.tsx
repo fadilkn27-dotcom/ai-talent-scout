@@ -24,9 +24,9 @@ def solution(arr):
 # Test
 print(solution([3, 1, 4, 1, 5, 9]))`;
 
-interface AssignedTask {
-  id: string; // assignment id
-  assessment_id: string;
+interface AssessmentTask {
+  id: string; // assessment id
+  assignment_id: string | null; // assignment id if exists
   status: string;
   title: string;
   role: string;
@@ -50,9 +50,9 @@ interface PastEvaluation {
 
 export default function WorkerDashboard() {
   const { user } = useAuth();
-  const [tasks, setTasks] = useState<AssignedTask[]>([]);
+  const [tasks, setTasks] = useState<AssessmentTask[]>([]);
   const [pastEvals, setPastEvals] = useState<PastEvaluation[]>([]);
-  const [selectedTask, setSelectedTask] = useState<AssignedTask | null>(null);
+  const [selectedTask, setSelectedTask] = useState<AssessmentTask | null>(null);
   const [code, setCode] = useState(defaultCode);
   const [language, setLanguage] = useState("python");
   const [timeLeft, setTimeLeft] = useState(45 * 60);
@@ -76,23 +76,29 @@ export default function WorkerDashboard() {
   }, [timerActive, timeLeft]);
 
   async function fetchTasks() {
-    const { data, error } = await supabase
-      .from("assessment_assignments")
-      .select("id, assessment_id, status, assessments!inner(title, role, difficulty, skills, coding_questions)")
-      .eq("worker_id", user!.id);
+    // Fetch all assessments and the worker's existing assignments in parallel
+    const [assessmentsRes, assignmentsRes] = await Promise.all([
+      supabase.from("assessments").select("id, title, role, difficulty, skills, coding_questions"),
+      supabase.from("assessment_assignments").select("id, assessment_id, status").eq("worker_id", user!.id),
+    ]);
 
-    if (!error && data) {
-      setTasks(data.map((d: any) => ({
-        id: d.id,
-        assessment_id: d.assessment_id,
-        status: d.status,
-        title: d.assessments.title,
-        role: d.assessments.role,
-        difficulty: d.assessments.difficulty,
-        skills: d.assessments.skills,
-        coding_questions: d.assessments.coding_questions,
-      })));
-    }
+    const assessments = assessmentsRes.data || [];
+    const assignments = assignmentsRes.data || [];
+    const assignmentMap = new Map(assignments.map((a) => [a.assessment_id, a]));
+
+    setTasks(assessments.map((a) => {
+      const assignment = assignmentMap.get(a.id);
+      return {
+        id: a.id,
+        assignment_id: assignment?.id || null,
+        status: assignment?.status || "pending",
+        title: a.title,
+        role: a.role,
+        difficulty: a.difficulty,
+        skills: a.skills,
+        coding_questions: a.coding_questions,
+      };
+    }));
     setLoading(false);
   }
 
@@ -134,9 +140,30 @@ export default function WorkerDashboard() {
     const scores = generateAIScore();
     setResult(scores);
 
-    // Save to database
+    // Auto-create assignment if not exists
+    let assignmentId = selectedTask.assignment_id;
+    if (!assignmentId) {
+      const { data: newAssignment, error: assignErr } = await supabase
+        .from("assessment_assignments")
+        .insert({
+          assessment_id: selectedTask.id,
+          worker_id: user.id,
+          assigned_by: user.id,
+        })
+        .select("id")
+        .single();
+
+      if (assignErr || !newAssignment) {
+        toast({ title: "Error creating assignment", description: assignErr?.message, variant: "destructive" });
+        setSubmitting(false);
+        return;
+      }
+      assignmentId = newAssignment.id;
+    }
+
+    // Save evaluation
     const { error } = await supabase.from("evaluations").insert({
-      assignment_id: selectedTask.id,
+      assignment_id: assignmentId,
       worker_id: user.id,
       syntax_score: scores.syntax,
       logic_score: scores.logic,
@@ -153,8 +180,7 @@ export default function WorkerDashboard() {
     if (error) {
       toast({ title: "Error saving evaluation", description: error.message, variant: "destructive" });
     } else {
-      // Update assignment status
-      await supabase.from("assessment_assignments").update({ status: "completed" }).eq("id", selectedTask.id);
+      await supabase.from("assessment_assignments").update({ status: "completed" }).eq("id", assignmentId);
       toast({ title: "Solution submitted and evaluated!" });
       fetchTasks();
       fetchPastEvaluations();
