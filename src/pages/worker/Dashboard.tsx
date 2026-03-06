@@ -33,6 +33,7 @@ interface AssessmentTask {
   difficulty: string;
   skills: string[];
   coding_questions: string[] | null;
+  evaluation_criteria: string[];
 }
 
 interface PastEvaluation {
@@ -78,7 +79,7 @@ export default function WorkerDashboard() {
   async function fetchTasks() {
     // Fetch all assessments and the worker's existing assignments in parallel
     const [assessmentsRes, assignmentsRes] = await Promise.all([
-      supabase.from("assessments").select("id, title, role, difficulty, skills, coding_questions"),
+      supabase.from("assessments").select("id, title, role, difficulty, skills, coding_questions, evaluation_criteria"),
       supabase.from("assessment_assignments").select("id, assessment_id, status").eq("worker_id", user!.id),
     ]);
 
@@ -86,7 +87,7 @@ export default function WorkerDashboard() {
     const assignments = assignmentsRes.data || [];
     const assignmentMap = new Map(assignments.map((a) => [a.assessment_id, a]));
 
-    setTasks(assessments.map((a) => {
+    setTasks(assessments.map((a: any) => {
       const assignment = assignmentMap.get(a.id);
       return {
         id: a.id,
@@ -97,6 +98,7 @@ export default function WorkerDashboard() {
         difficulty: a.difficulty,
         skills: a.skills,
         coding_questions: a.coding_questions,
+        evaluation_criteria: a.evaluation_criteria || [],
       };
     }));
     setLoading(false);
@@ -230,6 +232,9 @@ export default function WorkerDashboard() {
                   <div className="space-y-1">
                     <h3 className="font-semibold text-card-foreground">{task.title}</h3>
                     <p className="text-sm text-muted-foreground">{task.role} • {task.difficulty} • {task.skills.join(", ")}</p>
+                    {task.evaluation_criteria.length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-0.5">Criteria: {task.evaluation_criteria.join(", ")}</p>
+                    )}
                   </div>
                   <StatusBadge status={task.status === "completed" ? "completed" : "pending"} />
                 </motion.div>
@@ -270,6 +275,20 @@ export default function WorkerDashboard() {
                     )}
                   </div>
                 </div>
+
+                {selectedTask.evaluation_criteria.length > 0 && (
+                  <div className="rounded-lg border bg-muted/50 p-4">
+                    <h4 className="text-sm font-semibold text-card-foreground mb-2">Evaluation Criteria</h4>
+                    <ul className="space-y-1">
+                      {selectedTask.evaluation_criteria.map((c, i) => (
+                        <li key={i} className="text-sm text-muted-foreground flex items-center gap-2">
+                          <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                          {c}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 <div className="rounded-xl border bg-card shadow-card overflow-hidden">
                   <div className="border-b bg-muted/50 px-4 py-2 text-xs text-muted-foreground font-mono flex items-center gap-2">

@@ -26,6 +26,7 @@ interface Assessment {
   coding_questions: string[] | null;
   algorithm_problems: string[] | null;
   mcqs: string[] | null;
+  evaluation_criteria: string[];
   created_at: string;
 }
 
@@ -67,6 +68,7 @@ export default function ClientDashboard() {
   const [newRole, setNewRole] = useState("");
   const [newSkills, setNewSkills] = useState("");
   const [newDifficulty, setNewDifficulty] = useState("Medium");
+  const [newCriteria, setNewCriteria] = useState("");
 
   // Assign dialog state
   const [assignOpen, setAssignOpen] = useState(false);
@@ -128,6 +130,7 @@ export default function ClientDashboard() {
   async function handleCreateAssessment() {
     if (!newTitle || !user) return;
     const skills = newSkills.split(",").map((s) => s.trim()).filter(Boolean);
+    const criteria = newCriteria.split("\n").map((s) => s.trim()).filter(Boolean);
     const { error } = await supabase.from("assessments").insert({
       title: newTitle,
       role: newRole,
@@ -135,13 +138,14 @@ export default function ClientDashboard() {
       difficulty: newDifficulty,
       created_by: user.id,
       questions_count: 0,
+      evaluation_criteria: criteria,
     });
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Assessment created" });
       setCreateOpen(false);
-      setNewTitle(""); setNewRole(""); setNewSkills(""); setNewDifficulty("Medium");
+      setNewTitle(""); setNewRole(""); setNewSkills(""); setNewDifficulty("Medium"); setNewCriteria("");
       fetchAssessments();
     }
   }
@@ -283,6 +287,16 @@ export default function ClientDashboard() {
                           </SelectContent>
                         </Select>
                       </div>
+                      <div className="space-y-2">
+                        <Label>Evaluation Criteria (one per line)</Label>
+                        <textarea
+                          value={newCriteria}
+                          onChange={(e) => setNewCriteria(e.target.value)}
+                          placeholder={"Code readability and naming conventions\nAlgorithmic efficiency (time & space)\nError handling and edge cases\nCode modularity and reusability"}
+                          className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          rows={4}
+                        />
+                      </div>
                       <Button onClick={handleCreateAssessment} disabled={!newTitle} className="w-full gradient-primary border-0 text-primary-foreground">Create</Button>
                     </div>
                   </DialogContent>
@@ -302,11 +316,18 @@ export default function ClientDashboard() {
                       <div className="space-y-1">
                         <h3 className="font-semibold text-card-foreground">{a.title}</h3>
                         <p className="text-sm text-muted-foreground">{a.role} • {a.difficulty} • {a.questions_count} questions</p>
-                        <div className="flex gap-1.5">
+                        <div className="flex gap-1.5 flex-wrap">
                           {a.skills.map((s) => (
                             <span key={s} className="rounded bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{s}</span>
                           ))}
                         </div>
+                        {a.evaluation_criteria.length > 0 && (
+                          <div className="flex gap-1.5 flex-wrap mt-1">
+                            {a.evaluation_criteria.map((c, ci) => (
+                              <span key={ci} className="rounded bg-accent px-2 py-0.5 text-xs text-accent-foreground">{c}</span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm" onClick={() => { setAssignAssessmentId(a.id); setAssignOpen(true); }}>

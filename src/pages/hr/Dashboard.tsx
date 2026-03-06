@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, BarChart3, TrendingUp, Bell, Search } from "lucide-react";
+import { Users, BarChart3, TrendingUp, Bell, Search, Eye, Code2 } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ScoreBar } from "@/components/ScoreBar";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -26,6 +28,11 @@ interface Candidate {
   performanceScore: number;
   status: "selected" | "rejected" | "review";
   evaluatedAt: string;
+  codeSubmitted: string | null;
+  language: string | null;
+  feedback: string[] | null;
+  assessmentTitle: string;
+  evaluationCriteria: string[];
 }
 
 export default function HRDashboard() {
@@ -41,7 +48,7 @@ export default function HRDashboard() {
   async function fetchCandidates() {
     const { data, error } = await supabase
       .from("evaluations")
-      .select("*, assessment_assignments!inner(assessment_id, assessments!inner(title, role))")
+      .select("*, assessment_assignments!inner(assessment_id, assessments!inner(title, role, evaluation_criteria))")
       .order("evaluated_at", { ascending: false });
 
     if (!error && data) {
@@ -67,6 +74,11 @@ export default function HRDashboard() {
           performanceScore: e.performance_score,
           status,
           evaluatedAt: e.evaluated_at,
+          codeSubmitted: e.code_submitted,
+          language: e.language,
+          feedback: e.feedback,
+          assessmentTitle: e.assessment_assignments?.assessments?.title || "",
+          evaluationCriteria: e.assessment_assignments?.assessments?.evaluation_criteria || [],
         };
       }));
     }
@@ -138,6 +150,7 @@ export default function HRDashboard() {
                         <TableHead>Score</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>AI Recommendation</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -161,6 +174,62 @@ export default function HRDashboard() {
                               <div className="flex justify-between text-xs"><span>Problem Solving</span><span className="font-mono">{c.logicScore}%</span></div>
                               <div className="flex justify-between text-xs"><span>Confidence</span><span className="font-mono">{Math.round((c.syntaxScore + c.logicScore + c.performanceScore) / 3)}%</span></div>
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" size="sm"><Eye className="mr-1.5 h-3.5 w-3.5" />View Details</Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                                <DialogHeader>
+                                  <DialogTitle>{c.name} — {c.assessmentTitle}</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-5 pt-2">
+                                  <div className="grid gap-3 sm:grid-cols-2">
+                                    <ScoreBar label="Syntax Analysis" score={c.syntaxScore} delay={0.1} />
+                                    <ScoreBar label="Logical Analysis" score={c.logicScore} delay={0.2} />
+                                    <ScoreBar label="Complexity Score" score={c.complexityScore} delay={0.3} />
+                                    <ScoreBar label="Performance Score" score={c.performanceScore} delay={0.4} />
+                                  </div>
+                                  <div className="rounded-lg bg-muted p-4 text-center">
+                                    <p className="text-2xl font-bold text-card-foreground">{c.score}%</p>
+                                    <p className="text-sm text-muted-foreground">Overall Score</p>
+                                  </div>
+                                  {c.evaluationCriteria.length > 0 && (
+                                    <div>
+                                      <h4 className="mb-2 font-semibold text-card-foreground text-sm">Evaluation Criteria</h4>
+                                      <ul className="space-y-1">
+                                        {c.evaluationCriteria.map((cr, i) => (
+                                          <li key={i} className="text-sm text-muted-foreground flex items-center gap-2">
+                                            <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                                            {cr}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                  {c.feedback && c.feedback.length > 0 && (
+                                    <div>
+                                      <h4 className="mb-2 font-semibold text-card-foreground text-sm">AI Feedback</h4>
+                                      <div className="space-y-2">
+                                        {c.feedback.map((f, i) => (
+                                          <p key={i} className="rounded-lg bg-muted p-3 text-sm text-card-foreground">{f}</p>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                  {c.codeSubmitted && (
+                                    <div>
+                                      <h4 className="mb-2 font-semibold text-card-foreground text-sm flex items-center gap-1.5">
+                                        <Code2 className="h-4 w-4" />
+                                        Submitted Code ({c.language || "unknown"})
+                                      </h4>
+                                      <pre className="rounded-lg bg-muted p-4 text-sm text-card-foreground overflow-x-auto font-mono leading-relaxed whitespace-pre-wrap">{c.codeSubmitted}</pre>
+                                    </div>
+                                  )}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
                           </TableCell>
                         </TableRow>
                       ))}

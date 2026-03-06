@@ -1,0 +1,1 @@
+ALTER TABLE public.assessments ADD COLUMN evaluation_criteria text[] NOT NULL DEFAULT '{}'::text[];
