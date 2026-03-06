@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { Brain, User, Code2, Shield } from "lucide-react";
 import { useAuth, UserRole } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -26,7 +25,6 @@ export default function Login() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Redirect authenticated users to their dashboard
   useEffect(() => {
     if (isAuthenticated && user) {
       const roleRoutes: Record<UserRole, string> = {
@@ -48,7 +46,6 @@ export default function Login() {
         setIsSignup(false);
       } else {
         await login(email, password);
-        // Navigation will happen via auth state change + ProtectedRoute
       }
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -60,83 +57,81 @@ export default function Login() {
   return (
     <div className="flex min-h-screen">
       {/* Left panel */}
-      <div className="hidden w-1/2 gradient-hero lg:flex lg:flex-col lg:items-center lg:justify-center lg:p-12">
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }} className="max-w-md">
-          <div className="mb-8 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-primary shadow-glow">
-              <Brain className="h-5 w-5 text-primary-foreground" />
+      <div className="hidden w-1/2 bg-primary lg:flex lg:flex-col lg:items-center lg:justify-center lg:p-12">
+        <div className="max-w-sm">
+          <div className="mb-6 flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary-foreground/20">
+              <Brain className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="text-2xl font-bold text-primary-foreground">EvalAI</span>
+            <span className="text-xl font-semibold text-primary-foreground">EvalAI</span>
           </div>
-          <h2 className="mb-4 text-3xl font-bold text-primary-foreground">AI-Powered Technical Recruitment</h2>
-          <p className="text-primary-foreground/60">
+          <h2 className="mb-3 text-2xl font-bold text-primary-foreground">AI-Powered Technical Recruitment</h2>
+          <p className="text-sm text-primary-foreground/70 leading-relaxed">
             Evaluate candidates with precision. Our AI engine analyzes code quality, algorithmic thinking,
             and problem-solving capabilities to help you build the best team.
           </p>
-        </motion.div>
+        </div>
       </div>
 
       {/* Right panel */}
-      <div className="flex flex-1 flex-col items-center justify-center p-8">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-          <div className="mb-8 text-center lg:text-left">
-            <h1 className="mb-2 text-2xl font-bold text-foreground">
+      <div className="flex flex-1 flex-col items-center justify-center p-8 bg-background">
+        <div className="w-full max-w-sm">
+          <div className="mb-6">
+            <h1 className="mb-1 text-xl font-bold text-foreground">
               {isSignup ? "Create your account" : "Welcome back"}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {isSignup ? "Select your role and create an account." : "Sign in to continue."}
             </p>
           </div>
 
-          {/* Role selector (signup only) */}
           {isSignup && (
-            <div className="mb-6 grid grid-cols-3 gap-3">
+            <div className="mb-5 grid grid-cols-3 gap-2">
               {roles.map((r) => (
                 <button
                   key={r.value}
                   onClick={() => setSelectedRole(r.value)}
                   className={cn(
-                    "flex flex-col items-center gap-2 rounded-xl border p-4 text-center transition-all",
+                    "flex flex-col items-center gap-1.5 rounded-md border p-3 text-center transition-all",
                     selectedRole === r.value
-                      ? "border-primary bg-primary/5 shadow-glow"
-                      : "border-border hover:border-primary/30 hover:bg-muted/50"
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/30"
                   )}
                 >
-                  <r.icon className={cn("h-5 w-5", selectedRole === r.value ? "text-primary" : "text-muted-foreground")} />
-                  <span className={cn("text-xs font-semibold", selectedRole === r.value ? "text-primary" : "text-foreground")}>{r.label}</span>
-                  <span className="text-[10px] leading-tight text-muted-foreground">{r.description}</span>
+                  <r.icon className={cn("h-4 w-4", selectedRole === r.value ? "text-primary" : "text-muted-foreground")} />
+                  <span className={cn("text-xs font-medium", selectedRole === r.value ? "text-primary" : "text-foreground")}>{r.label}</span>
                 </button>
               ))}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             {isSignup && (
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="fullName" className="text-xs">Full Name</Label>
                 <Input id="fullName" placeholder="John Doe" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
               </div>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-xs">Email</Label>
               <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-xs">Password</Label>
               <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
             </div>
-            <Button type="submit" disabled={loading} className="w-full gradient-primary border-0 text-primary-foreground shadow-glow">
+            <Button type="submit" disabled={loading} className="w-full">
               {loading ? (isSignup ? "Creating account…" : "Signing in…") : (isSignup ? "Create Account" : "Sign In")}
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
+          <p className="mt-5 text-center text-xs text-muted-foreground">
             {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
-            <button onClick={() => setIsSignup(!isSignup)} className="font-semibold text-primary hover:underline">
+            <button onClick={() => setIsSignup(!isSignup)} className="font-medium text-primary hover:underline">
               {isSignup ? "Sign In" : "Sign Up"}
             </button>
           </p>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
