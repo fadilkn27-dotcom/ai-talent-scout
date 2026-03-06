@@ -1,6 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -24,9 +23,9 @@ import {
   LogOut,
   Brain,
   ClipboardList,
-  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const clientNav = [
   { title: "Dashboard", url: "/client", icon: LayoutDashboard },
@@ -53,7 +52,6 @@ export function AppSidebar() {
   const { user, logout } = useAuth();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const location = useLocation();
 
   if (!user) return null;
 
@@ -61,24 +59,23 @@ export function AppSidebar() {
   const roleLabel = user.role === "client" ? "Task Creator" : user.role === "worker" ? "Candidate" : "HR Admin";
 
   return (
-    <Sidebar collapsible="icon" className="border-r-0">
+    <Sidebar collapsible="icon" className="border-r">
       <SidebarContent className="bg-sidebar">
         <SidebarGroup>
-          <SidebarGroupLabel className="px-4 py-6">
-            {!collapsed && (
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary">
-                  <Brain className="h-4 w-4 text-primary-foreground" />
+          <SidebarGroupLabel className="px-4 py-5">
+            {!collapsed ? (
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary">
+                  <Brain className="h-3.5 w-3.5 text-primary-foreground" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-sidebar-foreground">EvalAI</p>
-                  <p className="text-xs text-sidebar-foreground/60">{roleLabel}</p>
+                  <p className="text-[10px] text-muted-foreground">{roleLabel}</p>
                 </div>
               </div>
-            )}
-            {collapsed && (
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary">
-                <Brain className="h-4 w-4 text-primary-foreground" />
+            ) : (
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary">
+                <Brain className="h-3.5 w-3.5 text-primary-foreground" />
               </div>
             )}
           </SidebarGroupLabel>
@@ -90,8 +87,8 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end
-                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-semibold"
+                      className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      activeClassName="bg-primary/10 text-primary font-medium"
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
                       {!collapsed && <span>{item.title}</span>}
@@ -104,15 +101,15 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="bg-sidebar border-t border-sidebar-border p-3">
+      <SidebarFooter className="bg-sidebar border-t p-3">
         {!collapsed && (
-          <div className="mb-2 flex items-center gap-3 rounded-lg bg-sidebar-accent p-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+          <div className="mb-2 flex items-center gap-2.5 rounded-md bg-accent p-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
               {user.name.split(" ").map((n) => n[0]).join("")}
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="truncate text-sm font-medium text-sidebar-foreground">{user.name}</p>
-              <p className="truncate text-xs text-sidebar-foreground/60">{user.email}</p>
+              <p className="truncate text-xs font-medium text-foreground">{user.name}</p>
+              <p className="truncate text-[10px] text-muted-foreground">{user.email}</p>
             </div>
           </div>
         )}
@@ -120,10 +117,10 @@ export function AppSidebar() {
           variant="ghost"
           size={collapsed ? "icon" : "default"}
           onClick={() => logout()}
-          className="w-full justify-start text-sidebar-foreground/60 hover:text-destructive hover:bg-destructive/10"
+          className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10"
         >
           <LogOut className="h-4 w-4 shrink-0" />
-          {!collapsed && <span className="ml-2">Logout</span>}
+          {!collapsed && <span className="ml-2 text-sm">Logout</span>}
         </Button>
       </SidebarFooter>
     </Sidebar>

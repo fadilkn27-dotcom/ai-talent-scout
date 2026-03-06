@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface StatCardProps {
@@ -11,21 +10,18 @@ interface StatCardProps {
   delay?: number;
 }
 
-export function StatCard({ title, value, subtitle, icon, trend, className, delay = 0 }: StatCardProps) {
+export function StatCard({ title, value, subtitle, icon, trend, className }: StatCardProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay }}
+    <div
       className={cn(
-        "group relative overflow-hidden rounded-xl border bg-card p-6 shadow-card transition-all hover:shadow-elevated",
+        "rounded-lg border bg-card p-5 transition-shadow hover:shadow-elevated",
         className
       )}
     >
       <div className="flex items-start justify-between">
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="text-3xl font-bold tracking-tight text-card-foreground">{value}</p>
+        <div className="space-y-1.5">
+          <p className="text-xs font-medium text-muted-foreground">{title}</p>
+          <p className="text-2xl font-bold tracking-tight text-card-foreground">{value}</p>
           {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
           {trend && (
             <p className={cn("text-xs font-medium", trend.positive ? "text-success" : "text-destructive")}>
@@ -33,11 +29,10 @@ export function StatCard({ title, value, subtitle, icon, trend, className, delay
             </p>
           )}
         </div>
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
           {icon}
         </div>
       </div>
-      <div className="absolute inset-x-0 bottom-0 h-1 gradient-primary opacity-0 transition-opacity group-hover:opacity-100" />
-    </motion.div>
+    </div>
   );
 }
