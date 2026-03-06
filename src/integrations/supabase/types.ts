@@ -56,6 +56,7 @@ export type Database = {
           created_at: string
           created_by: string
           difficulty: string
+          evaluation_criteria: string[]
           id: string
           mcqs: string[] | null
           questions_count: number
@@ -70,6 +71,7 @@ export type Database = {
           created_at?: string
           created_by: string
           difficulty?: string
+          evaluation_criteria?: string[]
           id?: string
           mcqs?: string[] | null
           questions_count?: number
@@ -84,6 +86,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           difficulty?: string
+          evaluation_criteria?: string[]
           id?: string
           mcqs?: string[] | null
           questions_count?: number
