@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Code2, Clock, Play, Send, CheckCircle, FileText, AlertTriangle } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
@@ -59,7 +60,11 @@ interface PastEvaluation {
 }
 
 export default function WorkerDashboard() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
+  const tabFromPath = location.pathname.split("/")[2] || "tasks";
+  const activeTab = ["tasks", "editor", "results"].includes(tabFromPath) ? tabFromPath : "tasks";
   const [tasks, setTasks] = useState<AssessmentTask[]>([]);
   const [pastEvals, setPastEvals] = useState<PastEvaluation[]>([]);
   const [selectedTask, setSelectedTask] = useState<AssessmentTask | null>(null);
@@ -254,7 +259,7 @@ export default function WorkerDashboard() {
           <StatCard title="Pending" value={pendingTasks.length} icon={<Clock className="h-5 w-5" />} delay={0.2} />
         </div>
 
-        <Tabs defaultValue="tasks" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={(v) => navigate(v === "tasks" ? "/worker" : `/worker/${v}`)} className="space-y-6">
           <TabsList className="bg-muted">
             <TabsTrigger value="tasks">My Tasks</TabsTrigger>
             <TabsTrigger value="editor">Code Editor</TabsTrigger>

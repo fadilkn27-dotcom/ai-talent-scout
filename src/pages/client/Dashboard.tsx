@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FileText, Users, CheckCircle, BarChart3, Brain, Plus, Trash2, Edit, Eye, UserPlus } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
@@ -53,7 +54,11 @@ interface EvalCandidate {
 }
 
 export default function ClientDashboard() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
+  const tabFromPath = location.pathname.split("/")[2] || "assessments";
+  const activeTab = ["assessments", "generator", "evaluations"].includes(tabFromPath) ? tabFromPath : "assessments";
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [evaluations, setEvaluations] = useState<EvalCandidate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -271,7 +276,7 @@ export default function ClientDashboard() {
           <StatCard title="Avg. Score" value={avgScore ? `${avgScore}%` : "—"} icon={<BarChart3 className="h-5 w-5" />} delay={0.3} />
         </div>
 
-        <Tabs defaultValue="assessments" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={(v) => navigate(v === "assessments" ? "/client" : `/client/${v}`)} className="space-y-6">
           <TabsList className="bg-muted">
             <TabsTrigger value="assessments">Assessments</TabsTrigger>
             <TabsTrigger value="generator">AI Task Generator</TabsTrigger>

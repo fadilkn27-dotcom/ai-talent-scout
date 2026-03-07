@@ -13,13 +13,11 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
-  LayoutDashboard,
   FileText,
   Users,
   BarChart3,
   Code2,
   CheckCircle,
-  Bell,
   LogOut,
   Brain,
   ClipboardList,
@@ -28,24 +26,20 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const clientNav = [
-  { title: "Dashboard", url: "/client", icon: LayoutDashboard },
-  { title: "AI Task Generator", url: "/client/generate", icon: Brain },
-  { title: "Assessments", url: "/client/assessments", icon: ClipboardList },
+  { title: "Assessments", url: "/client", icon: ClipboardList },
+  { title: "AI Task Generator", url: "/client/generator", icon: Brain },
   { title: "Evaluations", url: "/client/evaluations", icon: BarChart3 },
 ];
 
 const workerNav = [
-  { title: "Dashboard", url: "/worker", icon: LayoutDashboard },
-  { title: "My Tasks", url: "/worker/tasks", icon: FileText },
+  { title: "My Tasks", url: "/worker", icon: FileText },
   { title: "Code Editor", url: "/worker/editor", icon: Code2 },
   { title: "Results", url: "/worker/results", icon: CheckCircle },
 ];
 
 const hrNav = [
-  { title: "Dashboard", url: "/hr", icon: LayoutDashboard },
-  { title: "Candidates", url: "/hr/candidates", icon: Users },
+  { title: "Candidates", url: "/hr", icon: Users },
   { title: "Analytics", url: "/hr/analytics", icon: BarChart3 },
-  { title: "Notifications", url: "/hr/notifications", icon: Bell },
 ];
 
 export function AppSidebar() {
