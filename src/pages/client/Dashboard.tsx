@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FileText, Users, CheckCircle, BarChart3, Brain, Plus, Trash2, Edit, Eye, UserPlus } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";

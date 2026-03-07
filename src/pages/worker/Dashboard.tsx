@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Code2, Clock, Play, Send, CheckCircle, FileText, AlertTriangle } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
