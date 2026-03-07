@@ -11,7 +11,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { aiEvaluationMessages, generateAIScore } from "@/lib/mock-data";
+import { supabase as supabaseClient } from "@/integrations/supabase/client";
+
+const aiEvaluationMessages = [
+  "Sending code to AI for analysis...",
+  "Evaluating syntax and code structure...",
+  "Analyzing logic and algorithm correctness...",
+  "Assessing complexity and design patterns...",
+  "Computing performance benchmarks...",
+  "Generating evaluation report...",
+];
 
 const defaultCode = `# Write your solution here
 def solution(arr):
