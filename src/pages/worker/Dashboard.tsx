@@ -146,13 +146,47 @@ export default function WorkerDashboard() {
     setSubmitting(true);
     setTimerActive(false);
 
-    for (let i = 0; i < aiEvaluationMessages.length; i++) {
-      setAnalysisStep(i);
-      await new Promise((r) => setTimeout(r, 800));
+    // Show progress steps while AI processes
+    const stepInterval = setInterval(() => {
+      setAnalysisStep((prev) => Math.min(prev + 1, aiEvaluationMessages.length - 1));
+    }, 1500);
+
+    let aiResult: any;
+    try {
+      const { data, error } = await supabaseClient.functions.invoke("evaluate-code", {
+        body: {
+          code,
+          language,
+          evaluationCriteria: selectedTask.evaluation_criteria,
+          assessmentTitle: selectedTask.title,
+          difficulty: selectedTask.difficulty,
+        },
+      });
+      clearInterval(stepInterval);
+      setAnalysisStep(aiEvaluationMessages.length - 1);
+
+      if (error) throw new Error(error.message || "AI evaluation failed");
+      if (data?.error) throw new Error(data.error);
+
+      aiResult = {
+        syntax: data.syntax_score,
+        logic: data.logic_score,
+        complexity: data.complexity_score,
+        performance: data.performance_score,
+        overall: data.overall_score,
+        recommendation: data.recommendation,
+        feedback: data.feedback,
+      };
+    } catch (err: any) {
+      clearInterval(stepInterval);
+      toast({ title: "AI Evaluation Error", description: err.message, variant: "destructive" });
+      setSubmitting(false);
+      setAnalysisStep(-1);
+      return;
     }
 
-    const scores = generateAIScore();
-    setResult(scores);
+    setResult(aiResult);
+    const scores = aiResult;
 
     // Auto-create assignment if not exists
     let assignmentId = selectedTask.assignment_id;
