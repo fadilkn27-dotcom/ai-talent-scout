@@ -69,7 +69,10 @@ export default function WorkerDashboard() {
   const [timerActive, setTimerActive] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [analysisStep, setAnalysisStep] = useState(-1);
-  const [result, setResult] = useState<ReturnType<typeof generateAIScore> | null>(null);
+  const [result, setResult] = useState<{
+    syntax: number; logic: number; complexity: number; performance: number;
+    overall: number; recommendation: string; feedback: string[];
+  } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
