@@ -209,8 +209,20 @@ export default function ClientDashboard() {
 
   const handleGenerate = async () => {
     setGenerating(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setGenerated(generateAIQuestions(genRole, genSkills.split(",").map((s) => s.trim()), genDifficulty));
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-questions", {
+        body: {
+          role: genRole,
+          skills: genSkills.split(",").map((s) => s.trim()).filter(Boolean),
+          difficulty: genDifficulty,
+        },
+      });
+      if (error) throw new Error(error.message || "Generation failed");
+      if (data?.error) throw new Error(data.error);
+      setGenerated(data as GeneratedQuestions);
+    } catch (err: any) {
+      toast({ title: "AI Generation Error", description: err.message, variant: "destructive" });
+    }
     setGenerating(false);
   };
 
