@@ -113,7 +113,7 @@ export default function HRDashboard() {
           <StatCard title="Hiring Confidence" value={candidates.length ? `${Math.round((selectedCount / candidates.length) * 100)}%` : "—"} icon={<TrendingUp className="h-5 w-5" />} delay={0.3} />
         </div>
 
-        <Tabs defaultValue="candidates" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={(v) => navigate(v === "candidates" ? "/hr" : `/hr/${v}`)} className="space-y-6">
           <TabsList className="bg-muted">
             <TabsTrigger value="candidates">Candidates</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>

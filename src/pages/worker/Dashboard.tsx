@@ -259,7 +259,7 @@ export default function WorkerDashboard() {
           <StatCard title="Pending" value={pendingTasks.length} icon={<Clock className="h-5 w-5" />} delay={0.2} />
         </div>
 
-        <Tabs defaultValue="tasks" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={(v) => navigate(v === "tasks" ? "/worker" : `/worker/${v}`)} className="space-y-6">
           <TabsList className="bg-muted">
             <TabsTrigger value="tasks">My Tasks</TabsTrigger>
             <TabsTrigger value="editor">Code Editor</TabsTrigger>

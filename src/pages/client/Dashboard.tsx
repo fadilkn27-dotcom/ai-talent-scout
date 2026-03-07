@@ -276,7 +276,7 @@ export default function ClientDashboard() {
           <StatCard title="Avg. Score" value={avgScore ? `${avgScore}%` : "—"} icon={<BarChart3 className="h-5 w-5" />} delay={0.3} />
         </div>
 
-        <Tabs defaultValue="assessments" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={(v) => navigate(v === "assessments" ? "/client" : `/client/${v}`)} className="space-y-6">
           <TabsList className="bg-muted">
             <TabsTrigger value="assessments">Assessments</TabsTrigger>
             <TabsTrigger value="generator">AI Task Generator</TabsTrigger>
