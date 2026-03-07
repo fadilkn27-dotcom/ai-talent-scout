@@ -63,7 +63,7 @@ export default function ClientDashboard() {
   const [genSkills, setGenSkills] = useState("");
   const [genDifficulty, setGenDifficulty] = useState("Medium");
   const [genTitle, setGenTitle] = useState("");
-  const [generated, setGenerated] = useState<ReturnType<typeof generateAIQuestions> | null>(null);
+  const [generated, setGenerated] = useState<GeneratedQuestions | null>(null);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
 
