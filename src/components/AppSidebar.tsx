@@ -13,13 +13,11 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
-  LayoutDashboard,
   FileText,
   Users,
   BarChart3,
   Code2,
   CheckCircle,
-  Bell,
   LogOut,
   Brain,
   ClipboardList,
