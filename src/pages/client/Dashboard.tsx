@@ -14,7 +14,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { generateAIQuestions } from "@/lib/mock-data";
+
+interface GeneratedQuestions {
+  codingQuestions: string[];
+  algorithmProblems: string[];
+  mcqs: string[];
+}
 
 interface Assessment {
   id: string;
