@@ -54,7 +54,11 @@ interface EvalCandidate {
 }
 
 export default function ClientDashboard() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
+  const tabFromPath = location.pathname.split("/")[2] || "assessments";
+  const activeTab = ["assessments", "generator", "evaluations"].includes(tabFromPath) ? tabFromPath : "assessments";
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [evaluations, setEvaluations] = useState<EvalCandidate[]>([]);
   const [loading, setLoading] = useState(true);

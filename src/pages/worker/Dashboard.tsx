@@ -60,7 +60,11 @@ interface PastEvaluation {
 }
 
 export default function WorkerDashboard() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
+  const tabFromPath = location.pathname.split("/")[2] || "tasks";
+  const activeTab = ["tasks", "editor", "results"].includes(tabFromPath) ? tabFromPath : "tasks";
   const [tasks, setTasks] = useState<AssessmentTask[]>([]);
   const [pastEvals, setPastEvals] = useState<PastEvaluation[]>([]);
   const [selectedTask, setSelectedTask] = useState<AssessmentTask | null>(null);
