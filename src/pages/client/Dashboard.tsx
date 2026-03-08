@@ -164,48 +164,7 @@ export default function ClientDashboard() {
       toast({ title: "Assessment deleted" });
     }
   }
-  async function handleAssignCandidate() {
-    if (!assignEmail || !assignAssessmentId || !user) return;
-    setAssigning(true);
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("email", assignEmail.trim())
-      .single();
 
-    if (profileError || !profile) {
-      toast({ title: "Candidate not found", description: "No account exists with that email. Make sure the candidate has signed up first.", variant: "destructive" });
-      setAssigning(false);
-      return;
-    }
-
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", profile.id)
-      .single();
-
-    if (roleData?.role !== "worker") {
-      toast({ title: "Not a candidate", description: "That user is not registered as a candidate.", variant: "destructive" });
-      setAssigning(false);
-      return;
-    }
-
-    const { error } = await supabase.from("assessment_assignments").insert({
-      assessment_id: assignAssessmentId,
-      worker_id: profile.id,
-      assigned_by: user.id,
-    });
-
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Assessment assigned!", description: `Assigned to ${assignEmail}` });
-      setAssignOpen(false);
-      setAssignEmail("");
-    }
-    setAssigning(false);
-  }
 
   const handleGenerate = async () => {
     setGenerating(true);
