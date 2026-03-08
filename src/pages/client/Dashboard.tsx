@@ -459,7 +459,6 @@ export default function ClientDashboard() {
                       <p className="text-sm text-muted-foreground">{c.assessment_title} • {new Date(c.evaluated_at).toLocaleDateString()}</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <StatusBadge status={c.status === "selected" ? "selected" : c.status === "rejected" ? "rejected" : "review"} />
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button variant="outline" size="sm"><Eye className="mr-1.5 h-3.5 w-3.5" />Details</Button>
