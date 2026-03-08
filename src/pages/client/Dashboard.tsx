@@ -129,6 +129,8 @@ export default function ClientDashboard() {
           status: e.status,
           evaluated_at: e.evaluated_at,
           feedback: e.feedback,
+          code_submitted: e.code_submitted,
+          language: e.language,
           worker_name: profileMap.get(e.worker_id)?.full_name || "Unknown",
           worker_email: profileMap.get(e.worker_id)?.email || "",
           assessment_title: e.assessment_assignments?.assessments?.title || "",
