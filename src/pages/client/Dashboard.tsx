@@ -470,7 +470,7 @@ export default function ClientDashboard() {
                         <DialogTrigger asChild>
                           <Button variant="outline" size="sm"><Eye className="mr-1.5 h-3.5 w-3.5" />Details</Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-lg">
+                        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle>{c.worker_name} — Evaluation Report</DialogTitle>
                           </DialogHeader>
@@ -479,18 +479,24 @@ export default function ClientDashboard() {
                             <ScoreBar label="Logical Analysis" score={c.logic_score} delay={0.2} />
                             <ScoreBar label="Complexity Score" score={c.complexity_score} delay={0.3} />
                             <ScoreBar label="Performance Score" score={c.performance_score} delay={0.4} />
-                            <div className="rounded-lg bg-muted p-4">
-                              <p className="text-sm font-semibold text-card-foreground">Overall: {c.overall_score}%</p>
-                              <p className="text-sm text-muted-foreground">
-                                AI Recommendation: <span className={c.recommendation === "Selected" ? "text-success font-semibold" : c.recommendation === "Rejected" ? "text-destructive font-semibold" : "text-warning font-semibold"}>{c.recommendation}</span>
-                              </p>
+                            <div className="rounded-lg bg-muted p-4 text-center">
+                              <p className="text-2xl font-bold text-card-foreground">{c.overall_score}%</p>
+                              <p className="text-sm text-muted-foreground">Overall AI Score</p>
                             </div>
                             {c.feedback && c.feedback.length > 0 && (
                               <div>
-                                <h4 className="mb-2 font-semibold text-card-foreground">AI Feedback</h4>
+                                <h4 className="mb-2 font-semibold text-card-foreground text-sm">AI Feedback</h4>
                                 {c.feedback.map((f, fi) => (
                                   <p key={fi} className="mb-2 rounded-lg bg-muted p-3 text-sm text-card-foreground">{f}</p>
                                 ))}
+                              </div>
+                            )}
+                            {c.code_submitted && (
+                              <div>
+                                <h4 className="mb-2 font-semibold text-card-foreground text-sm flex items-center gap-1.5">
+                                  Submitted Code ({c.language || "unknown"})
+                                </h4>
+                                <pre className="rounded-lg bg-muted p-4 text-sm text-card-foreground overflow-x-auto font-mono leading-relaxed whitespace-pre-wrap">{c.code_submitted}</pre>
                               </div>
                             )}
                             {c.status === "review" && (
