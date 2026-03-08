@@ -483,22 +483,6 @@ export default function ClientDashboard() {
           </TabsContent>
         </Tabs>
 
-        {/* Assign Dialog */}
-        <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Assign to Candidate</DialogTitle></DialogHeader>
-            <div className="space-y-4 pt-2">
-              <div className="space-y-2">
-                <Label>Candidate Email</Label>
-                <Input type="email" placeholder="candidate@example.com" value={assignEmail} onChange={(e) => setAssignEmail(e.target.value)} />
-              </div>
-              <p className="text-xs text-muted-foreground">The candidate must have already signed up as a "Candidate" role.</p>
-              <Button onClick={handleAssignCandidate} disabled={assigning || !assignEmail} className="w-full gradient-primary border-0 text-primary-foreground">
-                {assigning ? "Assigning…" : "Assign Assessment"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     </DashboardLayout>
   );
