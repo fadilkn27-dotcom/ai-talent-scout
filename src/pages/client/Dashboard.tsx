@@ -49,6 +49,8 @@ interface EvalCandidate {
   status: string;
   evaluated_at: string;
   feedback: string[] | null;
+  code_submitted: string | null;
+  language: string | null;
   worker_name?: string;
   worker_email?: string;
   assessment_title?: string;

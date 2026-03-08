@@ -45,8 +45,8 @@ Evaluate the code and provide:
 - complexity_score (0-100): Code complexity management, design patterns, modularity
 - performance_score (0-100): Efficiency, time/space complexity optimization
 - overall_score (0-100): Weighted average considering the evaluation criteria AND time performance. If the candidate finished quickly with good code, boost the score. If they used most/all of the time or ran out, factor that negatively proportional to code quality.
-- recommendation: "Selected" if overall >= 85, "Hold" if overall >= 65, "Rejected" if below 65
-- feedback: Array of 3-5 specific, actionable feedback strings. Include one item about their time management/speed.
+- recommendation: Always return "Hold" — the final hiring decision is made by the client, not the AI
+- feedback: Array of 3-5 specific, actionable feedback strings. Include one item about their time management/speed. Provide an objective analysis without making a hiring recommendation.
 
 Be strict but fair. If the code is a placeholder or incomplete, scores should reflect that.`;
 

@@ -290,11 +290,11 @@ export default function WorkerDashboard() {
       complexity_score: scores.complexity,
       performance_score: scores.performance,
       overall_score: scores.overall,
-      recommendation: scores.recommendation,
+      recommendation: "Hold",
       feedback: scores.feedback,
       code_submitted: currentCode,
       language,
-      status: scores.recommendation === "Selected" ? "selected" : scores.recommendation === "Rejected" ? "rejected" : "review",
+      status: "review",
     });
 
     if (error) {
