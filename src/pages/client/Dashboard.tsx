@@ -80,7 +80,9 @@ export default function ClientDashboard() {
   const [newSkills, setNewSkills] = useState("");
   const [newDifficulty, setNewDifficulty] = useState("Medium");
   const [newCriteria, setNewCriteria] = useState("");
-
+  const [newCodingQuestions, setNewCodingQuestions] = useState("");
+  const [newAlgorithmProblems, setNewAlgorithmProblems] = useState("");
+  const [newMcqs, setNewMcqs] = useState("");
 
   useEffect(() => {
     fetchAssessments();
