@@ -23,10 +23,14 @@ serve(async (req) => {
 
 You MUST respond by calling the "evaluate_code" function with your evaluation results. Do not respond with plain text.`;
 
+    const timeContext = timeTakenMinutes != null && allocatedMinutes
+      ? `\n**Time Performance:** Candidate took ${timeTakenMinutes} minutes out of ${allocatedMinutes} allocated minutes (${Math.round((timeTakenMinutes / allocatedMinutes) * 100)}% of time used).\n`
+      : "";
+
     const userPrompt = `Evaluate the following code submission for the assessment "${assessmentTitle}" (Difficulty: ${difficulty}).
 
 **Language:** ${language}
-
+${timeContext}
 **Evaluation Criteria (score each carefully):**
 ${criteriaText}
 
@@ -40,9 +44,9 @@ Evaluate the code and provide:
 - logic_score (0-100): Correctness of logic, algorithm implementation
 - complexity_score (0-100): Code complexity management, design patterns, modularity
 - performance_score (0-100): Efficiency, time/space complexity optimization
-- overall_score (0-100): Weighted average considering the evaluation criteria
+- overall_score (0-100): Weighted average considering the evaluation criteria AND time performance. If the candidate finished quickly with good code, boost the score. If they used most/all of the time or ran out, factor that negatively proportional to code quality.
 - recommendation: "Selected" if overall >= 85, "Hold" if overall >= 65, "Rejected" if below 65
-- feedback: Array of 3-5 specific, actionable feedback strings based on the evaluation criteria
+- feedback: Array of 3-5 specific, actionable feedback strings. Include one item about their time management/speed.
 
 Be strict but fair. If the code is a placeholder or incomplete, scores should reflect that.`;
 
