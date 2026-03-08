@@ -166,6 +166,16 @@ export default function ClientDashboard() {
     }
   }
 
+  async function handleUpdateEvalStatus(evalId: string, newStatus: "selected" | "rejected") {
+    const { error } = await supabase.from("evaluations").update({ status: newStatus }).eq("id", evalId);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setEvaluations((prev) => prev.map((e) => e.id === evalId ? { ...e, status: newStatus } : e));
+      toast({ title: newStatus === "selected" ? "Candidate accepted!" : "Candidate rejected" });
+    }
+  }
+
 
   const handleGenerate = async () => {
     setGenerating(true);
