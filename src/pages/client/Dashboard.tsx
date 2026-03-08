@@ -346,14 +346,9 @@ export default function ClientDashboard() {
                           </div>
                         )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => { setAssignAssessmentId(a.id); setAssignOpen(true); }}>
-                          <UserPlus className="mr-1.5 h-3.5 w-3.5" />Assign
-                        </Button>
-                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteAssessment(a.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteAssessment(a.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </motion.div>
                   ))}
                 </div>
