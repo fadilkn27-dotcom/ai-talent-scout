@@ -66,7 +66,7 @@ export default function HRDashboard() {
       const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
 
       setCandidates(data.map((e: any) => {
-        const status = e.recommendation === "Selected" ? "selected" : e.recommendation === "Rejected" ? "rejected" : "review";
+        const status = e.status === "selected" ? "selected" : e.status === "rejected" ? "rejected" : "review";
         return {
           id: e.id,
           name: profileMap.get(e.worker_id)?.full_name || "Unknown",
