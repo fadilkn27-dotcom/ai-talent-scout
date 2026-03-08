@@ -15,7 +15,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `You are an expert technical assessment creator for hiring. Generate high-quality, realistic assessment questions.
+    const systemPrompt = `You are an expert technical assessment creator for hiring. Generate high-quality, realistic assessment questions along with evaluation criteria.
 
 You MUST respond by calling the "generate_questions" function. Do not respond with plain text.`;
 
@@ -25,9 +25,10 @@ You MUST respond by calling the "generate_questions" function. Do not respond wi
 **Difficulty Level:** ${difficulty}
 
 Create:
-- 3 coding challenge descriptions (practical, real-world problems)
+- 3 coding challenge descriptions (practical, real-world problems with clear input/output expectations)
 - 2 algorithm problem descriptions (data structures & algorithms)
 - 3 multiple-choice questions (conceptual understanding)
+- 4-6 evaluation criteria that assessors should use to judge submissions (e.g. "Code readability", "Time complexity optimization", "Error handling", "Edge case coverage")
 
 Make them specific to the role and skills. Each should be a complete, clear problem statement.`;
 
@@ -48,7 +49,7 @@ Make them specific to the role and skills. Each should be a complete, clear prob
             type: "function",
             function: {
               name: "generate_questions",
-              description: "Return structured assessment questions.",
+              description: "Return structured assessment questions with evaluation criteria.",
               parameters: {
                 type: "object",
                 properties: {
@@ -67,8 +68,13 @@ Make them specific to the role and skills. Each should be a complete, clear prob
                     items: { type: "string" },
                     description: "3 multiple-choice questions",
                   },
+                  evaluationCriteria: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "4-6 evaluation criteria for judging submissions",
+                  },
                 },
-                required: ["codingQuestions", "algorithmProblems", "mcqs"],
+                required: ["codingQuestions", "algorithmProblems", "mcqs", "evaluationCriteria"],
                 additionalProperties: false,
               },
             },
