@@ -80,11 +80,6 @@ export default function ClientDashboard() {
   const [newDifficulty, setNewDifficulty] = useState("Medium");
   const [newCriteria, setNewCriteria] = useState("");
 
-  // Assign dialog state
-  const [assignOpen, setAssignOpen] = useState(false);
-  const [assignAssessmentId, setAssignAssessmentId] = useState("");
-  const [assignEmail, setAssignEmail] = useState("");
-  const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
     fetchAssessments();
