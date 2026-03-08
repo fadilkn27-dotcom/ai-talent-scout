@@ -375,6 +375,16 @@ export default function ClientDashboard() {
                       <p key={i} className="mb-2 rounded-lg bg-muted p-3 text-sm text-card-foreground">{q}</p>
                     ))}
                   </div>
+                  {generated.evaluationCriteria && generated.evaluationCriteria.length > 0 && (
+                    <div className="rounded-xl border bg-card p-5 shadow-card">
+                      <h3 className="mb-3 font-semibold text-card-foreground">Evaluation Criteria</h3>
+                      {generated.evaluationCriteria.map((c, i) => (
+                        <p key={i} className="mb-2 rounded-lg bg-muted p-3 text-sm text-card-foreground flex items-center gap-2">
+                          <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />{c}
+                        </p>
+                      ))}
+                    </div>
+                  )}
                   <Button onClick={handleSaveGenerated} disabled={saving || !genTitle} className="w-full gradient-primary border-0 text-primary-foreground">
                     {saving ? "Saving…" : "Save as Assessment"}
                   </Button>
