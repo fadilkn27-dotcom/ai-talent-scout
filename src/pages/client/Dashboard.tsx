@@ -428,7 +428,7 @@ export default function ClientDashboard() {
               {evaluations.length === 0 ? (
                 <div className="rounded-xl border bg-card p-8 text-center shadow-card">
                   <CheckCircle className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
-                  <p className="text-muted-foreground">No evaluations yet. Assign candidates to assessments to see results.</p>
+                  <p className="text-muted-foreground">No evaluations yet. Candidates who attempt your assessments will appear here.</p>
                 </div>
               ) : evaluations.map((c, i) => (
                 <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="rounded-xl border bg-card p-5 shadow-card">
