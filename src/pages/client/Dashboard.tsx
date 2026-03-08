@@ -20,6 +20,7 @@ interface GeneratedQuestions {
   codingQuestions: string[];
   algorithmProblems: string[];
   mcqs: string[];
+  evaluationCriteria: string[];
 }
 
 interface Assessment {
