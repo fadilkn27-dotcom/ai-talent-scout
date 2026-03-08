@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FileText, Users, CheckCircle, BarChart3, Brain, Plus, Trash2, Edit, Eye, UserPlus } from "lucide-react";
+import { FileText, Users, CheckCircle, BarChart3, Brain, Plus, Trash2, Eye } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
