@@ -453,11 +453,14 @@ export default function ClientDashboard() {
                 </div>
               ) : evaluations.map((c, i) => (
                 <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="rounded-xl border bg-card p-5 shadow-card">
-                  <div className="mb-4 flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold text-card-foreground">{c.worker_name}</h3>
-                      <p className="text-sm text-muted-foreground">{c.assessment_title} • {new Date(c.evaluated_at).toLocaleDateString()}</p>
-                    </div>
+                   <div className="mb-4 flex items-center justify-between">
+                     <div>
+                       <h3 className="font-semibold text-card-foreground">{c.worker_name}</h3>
+                       <div className="flex items-center gap-2 mt-1">
+                         <p className="text-sm text-muted-foreground">{c.assessment_title} • {new Date(c.evaluated_at).toLocaleDateString()}</p>
+                         <StatusBadge status={c.status === "review" ? "review" : c.status === "selected" ? "selected" : "rejected"} />
+                       </div>
+                     </div>
                     <div className="flex items-center gap-3">
                       <Dialog>
                         <DialogTrigger asChild>
