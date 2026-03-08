@@ -61,6 +61,7 @@ interface PastEvaluation {
   complexity_score: number;
   performance_score: number;
   recommendation: string;
+  status: string;
   feedback: string[] | null;
   evaluated_at: string;
   assessment_title: string;
@@ -163,6 +164,7 @@ export default function WorkerDashboard() {
         complexity_score: e.complexity_score,
         performance_score: e.performance_score,
         recommendation: e.recommendation,
+        status: e.status,
         feedback: e.feedback,
         evaluated_at: e.evaluated_at,
         assessment_title: e.assessment_assignments?.assessments?.title || "",
@@ -551,9 +553,12 @@ export default function WorkerDashboard() {
                         <h3 className="font-semibold text-card-foreground">{ev.assessment_title}</h3>
                         <p className="text-sm text-muted-foreground">{new Date(ev.evaluated_at).toLocaleDateString()}</p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-card-foreground">{ev.overall_score}%</p>
-                        <p className={`text-sm font-semibold ${ev.recommendation === "Selected" ? "text-success" : ev.recommendation === "Rejected" ? "text-destructive" : "text-warning"}`}>{ev.recommendation}</p>
+                      <div className="flex items-center gap-3">
+                        <StatusBadge status={ev.status === "selected" ? "selected" : ev.status === "rejected" ? "rejected" : "review"} />
+                        <div className="text-right">
+                          <p className="text-2xl font-bold text-card-foreground">{ev.overall_score}%</p>
+                          <p className="text-xs text-muted-foreground">AI: {ev.recommendation}</p>
+                        </div>
                       </div>
                     </div>
                     <div className="grid grid-cols-4 gap-4">

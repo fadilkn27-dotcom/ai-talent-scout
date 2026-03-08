@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FileText, Users, CheckCircle, BarChart3, Brain, Plus, Trash2, Eye } from "lucide-react";
+import { FileText, Users, CheckCircle, BarChart3, Brain, Plus, Trash2, Eye, ThumbsUp, ThumbsDown } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -163,6 +163,16 @@ export default function ClientDashboard() {
     } else {
       setAssessments((prev) => prev.filter((a) => a.id !== id));
       toast({ title: "Assessment deleted" });
+    }
+  }
+
+  async function handleUpdateEvalStatus(evalId: string, newStatus: "selected" | "rejected") {
+    const { error } = await supabase.from("evaluations").update({ status: newStatus }).eq("id", evalId);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setEvaluations((prev) => prev.map((e) => e.id === evalId ? { ...e, status: newStatus } : e));
+      toast({ title: newStatus === "selected" ? "Candidate accepted!" : "Candidate rejected" });
     }
   }
 
@@ -409,7 +419,7 @@ export default function ClientDashboard() {
                       <p className="text-sm text-muted-foreground">{c.assessment_title} • {new Date(c.evaluated_at).toLocaleDateString()}</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <StatusBadge status={c.recommendation === "Selected" ? "selected" : c.recommendation === "Rejected" ? "rejected" : "review"} />
+                      <StatusBadge status={c.status === "selected" ? "selected" : c.status === "rejected" ? "rejected" : "review"} />
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button variant="outline" size="sm"><Eye className="mr-1.5 h-3.5 w-3.5" />Details</Button>
@@ -426,7 +436,7 @@ export default function ClientDashboard() {
                             <div className="rounded-lg bg-muted p-4">
                               <p className="text-sm font-semibold text-card-foreground">Overall: {c.overall_score}%</p>
                               <p className="text-sm text-muted-foreground">
-                                Recommendation: <span className={c.recommendation === "Selected" ? "text-success font-semibold" : c.recommendation === "Rejected" ? "text-destructive font-semibold" : "text-warning font-semibold"}>{c.recommendation}</span>
+                                AI Recommendation: <span className={c.recommendation === "Selected" ? "text-success font-semibold" : c.recommendation === "Rejected" ? "text-destructive font-semibold" : "text-warning font-semibold"}>{c.recommendation}</span>
                               </p>
                             </div>
                             {c.feedback && c.feedback.length > 0 && (
@@ -437,9 +447,29 @@ export default function ClientDashboard() {
                                 ))}
                               </div>
                             )}
+                            {c.status === "review" && (
+                              <div className="flex gap-3 pt-2">
+                                <Button onClick={() => handleUpdateEvalStatus(c.id, "selected")} className="flex-1 bg-success/90 hover:bg-success text-success-foreground">
+                                  <ThumbsUp className="mr-1.5 h-4 w-4" />Accept
+                                </Button>
+                                <Button onClick={() => handleUpdateEvalStatus(c.id, "rejected")} variant="destructive" className="flex-1">
+                                  <ThumbsDown className="mr-1.5 h-4 w-4" />Reject
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </DialogContent>
                       </Dialog>
+                      {c.status === "review" && (
+                        <div className="flex gap-1.5">
+                          <Button size="sm" variant="outline" className="text-success border-success/30 hover:bg-success/10" onClick={() => handleUpdateEvalStatus(c.id, "selected")}>
+                            <ThumbsUp className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button size="sm" variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => handleUpdateEvalStatus(c.id, "rejected")}>
+                            <ThumbsDown className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="grid grid-cols-4 gap-4">
