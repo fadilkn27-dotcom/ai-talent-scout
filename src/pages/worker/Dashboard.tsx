@@ -61,6 +61,7 @@ interface PastEvaluation {
   complexity_score: number;
   performance_score: number;
   recommendation: string;
+  status: string;
   feedback: string[] | null;
   evaluated_at: string;
   assessment_title: string;
