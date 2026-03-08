@@ -164,6 +164,7 @@ export default function WorkerDashboard() {
         complexity_score: e.complexity_score,
         performance_score: e.performance_score,
         recommendation: e.recommendation,
+        status: e.status,
         feedback: e.feedback,
         evaluated_at: e.evaluated_at,
         assessment_title: e.assessment_assignments?.assessments?.title || "",
