@@ -267,7 +267,7 @@ export default function ClientDashboard() {
                   <DialogTrigger asChild>
                     <Button size="sm" className="gradient-primary border-0 text-primary-foreground"><Plus className="mr-1.5 h-4 w-4" />Create New</Button>
                   </DialogTrigger>
-                  <DialogContent>
+                    <DialogContent className="max-h-[90vh] overflow-y-auto">
                     <DialogHeader><DialogTitle>Create Assessment</DialogTitle></DialogHeader>
                     <div className="space-y-4 pt-2">
                       <div className="space-y-2"><Label>Title</Label><Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Assessment title" /></div>
