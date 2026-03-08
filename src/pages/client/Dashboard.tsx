@@ -201,6 +201,7 @@ export default function ClientDashboard() {
       coding_questions: generated.codingQuestions,
       algorithm_problems: generated.algorithmProblems,
       mcqs: generated.mcqs,
+      evaluation_criteria: generated.evaluationCriteria || [],
     });
     setSaving(false);
     if (error) {
