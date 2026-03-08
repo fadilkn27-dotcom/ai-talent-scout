@@ -80,7 +80,9 @@ export default function ClientDashboard() {
   const [newSkills, setNewSkills] = useState("");
   const [newDifficulty, setNewDifficulty] = useState("Medium");
   const [newCriteria, setNewCriteria] = useState("");
-
+  const [newCodingQuestions, setNewCodingQuestions] = useState("");
+  const [newAlgorithmProblems, setNewAlgorithmProblems] = useState("");
+  const [newMcqs, setNewMcqs] = useState("");
 
   useEffect(() => {
     fetchAssessments();
@@ -137,14 +139,21 @@ export default function ClientDashboard() {
     if (!newTitle || !user) return;
     const skills = newSkills.split(",").map((s) => s.trim()).filter(Boolean);
     const criteria = newCriteria.split("\n").map((s) => s.trim()).filter(Boolean);
+    const codingQs = newCodingQuestions.split("\n---\n").map((s) => s.trim()).filter(Boolean);
+    const algoPs = newAlgorithmProblems.split("\n---\n").map((s) => s.trim()).filter(Boolean);
+    const mcqList = newMcqs.split("\n---\n").map((s) => s.trim()).filter(Boolean);
+    const totalQuestions = codingQs.length + algoPs.length + mcqList.length;
     const { error } = await supabase.from("assessments").insert({
       title: newTitle,
       role: newRole,
       skills,
       difficulty: newDifficulty,
       created_by: user.id,
-      questions_count: 0,
+      questions_count: totalQuestions,
       evaluation_criteria: criteria,
+      coding_questions: codingQs.length ? codingQs : null,
+      algorithm_problems: algoPs.length ? algoPs : null,
+      mcqs: mcqList.length ? mcqList : null,
     });
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -152,6 +161,7 @@ export default function ClientDashboard() {
       toast({ title: "Assessment created" });
       setCreateOpen(false);
       setNewTitle(""); setNewRole(""); setNewSkills(""); setNewDifficulty("Medium"); setNewCriteria("");
+      setNewCodingQuestions(""); setNewAlgorithmProblems(""); setNewMcqs("");
       fetchAssessments();
     }
   }
@@ -257,7 +267,7 @@ export default function ClientDashboard() {
                   <DialogTrigger asChild>
                     <Button size="sm" className="gradient-primary border-0 text-primary-foreground"><Plus className="mr-1.5 h-4 w-4" />Create New</Button>
                   </DialogTrigger>
-                  <DialogContent>
+                    <DialogContent className="max-h-[90vh] overflow-y-auto">
                     <DialogHeader><DialogTitle>Create Assessment</DialogTitle></DialogHeader>
                     <div className="space-y-4 pt-2">
                       <div className="space-y-2"><Label>Title</Label><Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Assessment title" /></div>
@@ -274,6 +284,36 @@ export default function ClientDashboard() {
                             <SelectItem value="Expert">Expert</SelectItem>
                           </SelectContent>
                         </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Coding Questions (separate with ---)</Label>
+                        <textarea
+                          value={newCodingQuestions}
+                          onChange={(e) => setNewCodingQuestions(e.target.value)}
+                          placeholder={"Write a function that reverses a linked list.\n---\nBuild a REST API endpoint that handles pagination."}
+                          className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          rows={4}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Algorithm Problems (separate with ---)</Label>
+                        <textarea
+                          value={newAlgorithmProblems}
+                          onChange={(e) => setNewAlgorithmProblems(e.target.value)}
+                          placeholder={"Find the shortest path in a weighted graph.\n---\nImplement a LRU cache with O(1) operations."}
+                          className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          rows={4}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>MCQs (separate with ---)</Label>
+                        <textarea
+                          value={newMcqs}
+                          onChange={(e) => setNewMcqs(e.target.value)}
+                          placeholder={"What is the time complexity of binary search?\nA) O(n) B) O(log n) C) O(n²) D) O(1)\nAnswer: B"}
+                          className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          rows={4}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label>Evaluation Criteria (one per line)</Label>
