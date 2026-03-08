@@ -286,6 +286,36 @@ export default function ClientDashboard() {
                         </Select>
                       </div>
                       <div className="space-y-2">
+                        <Label>Coding Questions (separate with ---)</Label>
+                        <textarea
+                          value={newCodingQuestions}
+                          onChange={(e) => setNewCodingQuestions(e.target.value)}
+                          placeholder={"Write a function that reverses a linked list.\n---\nBuild a REST API endpoint that handles pagination."}
+                          className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          rows={4}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Algorithm Problems (separate with ---)</Label>
+                        <textarea
+                          value={newAlgorithmProblems}
+                          onChange={(e) => setNewAlgorithmProblems(e.target.value)}
+                          placeholder={"Find the shortest path in a weighted graph.\n---\nImplement a LRU cache with O(1) operations."}
+                          className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          rows={4}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>MCQs (separate with ---)</Label>
+                        <textarea
+                          value={newMcqs}
+                          onChange={(e) => setNewMcqs(e.target.value)}
+                          placeholder={"What is the time complexity of binary search?\nA) O(n) B) O(log n) C) O(n²) D) O(1)\nAnswer: B"}
+                          className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          rows={4}
+                        />
+                      </div>
+                      <div className="space-y-2">
                         <Label>Evaluation Criteria (one per line)</Label>
                         <textarea
                           value={newCriteria}
