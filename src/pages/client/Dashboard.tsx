@@ -139,14 +139,21 @@ export default function ClientDashboard() {
     if (!newTitle || !user) return;
     const skills = newSkills.split(",").map((s) => s.trim()).filter(Boolean);
     const criteria = newCriteria.split("\n").map((s) => s.trim()).filter(Boolean);
+    const codingQs = newCodingQuestions.split("\n---\n").map((s) => s.trim()).filter(Boolean);
+    const algoPs = newAlgorithmProblems.split("\n---\n").map((s) => s.trim()).filter(Boolean);
+    const mcqList = newMcqs.split("\n---\n").map((s) => s.trim()).filter(Boolean);
+    const totalQuestions = codingQs.length + algoPs.length + mcqList.length;
     const { error } = await supabase.from("assessments").insert({
       title: newTitle,
       role: newRole,
       skills,
       difficulty: newDifficulty,
       created_by: user.id,
-      questions_count: 0,
+      questions_count: totalQuestions,
       evaluation_criteria: criteria,
+      coding_questions: codingQs.length ? codingQs : null,
+      algorithm_problems: algoPs.length ? algoPs : null,
+      mcqs: mcqList.length ? mcqList : null,
     });
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -154,6 +161,7 @@ export default function ClientDashboard() {
       toast({ title: "Assessment created" });
       setCreateOpen(false);
       setNewTitle(""); setNewRole(""); setNewSkills(""); setNewDifficulty("Medium"); setNewCriteria("");
+      setNewCodingQuestions(""); setNewAlgorithmProblems(""); setNewMcqs("");
       fetchAssessments();
     }
   }
