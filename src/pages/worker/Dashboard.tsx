@@ -223,6 +223,11 @@ export default function WorkerDashboard() {
 
     let aiResult: any;
     try {
+      const allocatedMinutes = getDifficultyMinutes(selectedTask.difficulty);
+      const allocatedSeconds = allocatedMinutes * 60;
+      const timeTakenSeconds = Math.max(0, allocatedSeconds - timeLeft);
+      const timeTakenMinutes = Math.round(timeTakenSeconds / 60 * 10) / 10;
+
       const { data, error } = await supabase.functions.invoke("evaluate-code", {
         body: {
           code: currentCode,
@@ -231,6 +236,8 @@ export default function WorkerDashboard() {
           assessmentTitle: selectedTask.title,
           difficulty: selectedTask.difficulty,
           question: currentQuestion,
+          timeTakenMinutes,
+          allocatedMinutes,
         },
       });
       clearInterval(stepInterval);
