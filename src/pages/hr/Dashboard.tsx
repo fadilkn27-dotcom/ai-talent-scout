@@ -101,7 +101,32 @@ export default function HRDashboard() {
   const avgScore = candidates.length ? Math.round(candidates.reduce((a, c) => a + c.score, 0) / candidates.length) : 0;
   const selectedCount = candidates.filter((c) => c.status === "selected").length;
 
-  return (
+  // --- Create User state ---
+  const { toast } = useToast();
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newFullName, setNewFullName] = useState("");
+  const [newRole, setNewRole] = useState<UserRole>("client");
+  const [creating, setCreating] = useState(false);
+
+  async function handleCreateUser(e: React.FormEvent) {
+    e.preventDefault();
+    setCreating(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("create-user", {
+        body: { email: newEmail, password: newPassword, fullName: newFullName, role: newRole },
+      });
+      if (res.error) throw new Error(res.error.message);
+      if (res.data?.error) throw new Error(res.data.error);
+      toast({ title: "User created!", description: `${newFullName} (${newRole}) has been added.` });
+      setNewEmail(""); setNewPassword(""); setNewFullName(""); setNewRole("client");
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setCreating(false);
+    }
+  }
     <DashboardLayout>
       <div className="space-y-8">
         <div>
