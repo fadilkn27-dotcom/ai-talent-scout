@@ -8,11 +8,6 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
-const roles: { value: UserRole; label: string; description: string; icon: React.ElementType }[] = [
-  { value: "client", label: "Task Creator", description: "Create & manage assessments", icon: User },
-  { value: "worker", label: "Candidate", description: "Take coding challenges", icon: Code2 },
-  { value: "hr", label: "HR Admin", description: "Review & hire talent", icon: Shield },
-];
 
 export default function Login() {
   const [selectedRole, setSelectedRole] = useState<UserRole>("client");
