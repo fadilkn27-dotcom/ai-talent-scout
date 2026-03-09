@@ -332,6 +332,43 @@ export default function HRDashboard() {
               </div>
             )}
           </TabsContent>
+
+          <TabsContent value="users">
+            <div className="rounded-xl border bg-card p-6 shadow-card max-w-lg">
+              <h3 className="mb-1 text-lg font-semibold text-card-foreground flex items-center gap-2">
+                <UserPlus className="h-5 w-5" /> Create New User
+              </h3>
+              <p className="mb-5 text-sm text-muted-foreground">Add a new Task Creator or HR Admin account.</p>
+              <form onSubmit={handleCreateUser} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="newFullName" className="text-xs">Full Name</Label>
+                  <Input id="newFullName" placeholder="John Doe" value={newFullName} onChange={(e) => setNewFullName(e.target.value)} required />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="newEmail" className="text-xs">Email</Label>
+                  <Input id="newEmail" type="email" placeholder="user@example.com" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} required />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="newPassword" className="text-xs">Password</Label>
+                  <Input id="newPassword" type="password" placeholder="••••••••" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={6} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Role</Label>
+                  <Select value={newRole} onValueChange={(v) => setNewRole(v as UserRole)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="client">Task Creator</SelectItem>
+                      <SelectItem value="hr">HR Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button type="submit" disabled={creating} className="w-full">
+                  <Plus className="mr-1.5 h-4 w-4" />
+                  {creating ? "Creating…" : "Create User"}
+                </Button>
+              </form>
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>
