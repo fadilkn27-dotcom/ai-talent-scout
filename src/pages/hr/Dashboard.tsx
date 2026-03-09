@@ -127,6 +127,8 @@ export default function HRDashboard() {
       setCreating(false);
     }
   }
+
+  return (
     <DashboardLayout>
       <div className="space-y-8">
         <div>
