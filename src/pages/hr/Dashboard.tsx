@@ -43,7 +43,7 @@ export default function HRDashboard() {
   const location = useLocation();
   const navigate = useNavigate();
   const tabFromPath = location.pathname.split("/")[2] || "candidates";
-  const activeTab = ["candidates", "analytics"].includes(tabFromPath) ? tabFromPath : "candidates";
+  const activeTab = ["candidates", "analytics", "users"].includes(tabFromPath) ? tabFromPath : "candidates";
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
