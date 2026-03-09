@@ -147,6 +147,7 @@ export default function HRDashboard() {
           <TabsList className="bg-muted">
             <TabsTrigger value="candidates">Candidates</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="users">Manage Users</TabsTrigger>
           </TabsList>
 
           <TabsContent value="candidates">
