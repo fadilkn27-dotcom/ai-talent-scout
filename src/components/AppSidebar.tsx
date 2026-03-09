@@ -21,6 +21,7 @@ import {
   LogOut,
   Brain,
   ClipboardList,
+  UserPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
