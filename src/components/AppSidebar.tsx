@@ -40,6 +40,7 @@ const workerNav = [
 const hrNav = [
   { title: "Candidates", url: "/hr", icon: Users },
   { title: "Analytics", url: "/hr/analytics", icon: BarChart3 },
+  { title: "Manage Users", url: "/hr/users", icon: UserPlus },
 ];
 
 export function AppSidebar() {
