@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 
 
 export default function Login() {
-  const [selectedRole, setSelectedRole] = useState<UserRole>("client");
+  const [selectedRole] = useState<UserRole>("worker");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
