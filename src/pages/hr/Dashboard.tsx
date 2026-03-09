@@ -1,19 +1,22 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Users, BarChart3, TrendingUp, Bell, Search, Eye, Code2 } from "lucide-react";
+import { Users, BarChart3, TrendingUp, Bell, Search, Eye, Code2, UserPlus, Plus } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ScoreBar } from "@/components/ScoreBar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import type { UserRole } from "@/contexts/AuthContext";
 
 const barColors: Record<string, string> = { selected: "hsl(152, 60%, 42%)", rejected: "hsl(0, 72%, 51%)", review: "hsl(38, 92%, 50%)" };
 
@@ -40,7 +43,7 @@ export default function HRDashboard() {
   const location = useLocation();
   const navigate = useNavigate();
   const tabFromPath = location.pathname.split("/")[2] || "candidates";
-  const activeTab = ["candidates", "analytics"].includes(tabFromPath) ? tabFromPath : "candidates";
+  const activeTab = ["candidates", "analytics", "users"].includes(tabFromPath) ? tabFromPath : "candidates";
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -98,6 +101,33 @@ export default function HRDashboard() {
   const avgScore = candidates.length ? Math.round(candidates.reduce((a, c) => a + c.score, 0) / candidates.length) : 0;
   const selectedCount = candidates.filter((c) => c.status === "selected").length;
 
+  // --- Create User state ---
+  const { toast } = useToast();
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newFullName, setNewFullName] = useState("");
+  const [newRole, setNewRole] = useState<UserRole>("client");
+  const [creating, setCreating] = useState(false);
+
+  async function handleCreateUser(e: React.FormEvent) {
+    e.preventDefault();
+    setCreating(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("create-user", {
+        body: { email: newEmail, password: newPassword, fullName: newFullName, role: newRole },
+      });
+      if (res.error) throw new Error(res.error.message);
+      if (res.data?.error) throw new Error(res.data.error);
+      toast({ title: "User created!", description: `${newFullName} (${newRole}) has been added.` });
+      setNewEmail(""); setNewPassword(""); setNewFullName(""); setNewRole("client");
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setCreating(false);
+    }
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -117,6 +147,7 @@ export default function HRDashboard() {
           <TabsList className="bg-muted">
             <TabsTrigger value="candidates">Candidates</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="users">Manage Users</TabsTrigger>
           </TabsList>
 
           <TabsContent value="candidates">
@@ -300,6 +331,43 @@ export default function HRDashboard() {
                 </div>
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="users">
+            <div className="rounded-xl border bg-card p-6 shadow-card max-w-lg">
+              <h3 className="mb-1 text-lg font-semibold text-card-foreground flex items-center gap-2">
+                <UserPlus className="h-5 w-5" /> Create New User
+              </h3>
+              <p className="mb-5 text-sm text-muted-foreground">Add a new Task Creator or HR Admin account.</p>
+              <form onSubmit={handleCreateUser} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="newFullName" className="text-xs">Full Name</Label>
+                  <Input id="newFullName" placeholder="John Doe" value={newFullName} onChange={(e) => setNewFullName(e.target.value)} required />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="newEmail" className="text-xs">Email</Label>
+                  <Input id="newEmail" type="email" placeholder="user@example.com" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} required />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="newPassword" className="text-xs">Password</Label>
+                  <Input id="newPassword" type="password" placeholder="••••••••" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={6} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Role</Label>
+                  <Select value={newRole} onValueChange={(v) => setNewRole(v as UserRole)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="client">Task Creator</SelectItem>
+                      <SelectItem value="hr">HR Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button type="submit" disabled={creating} className="w-full">
+                  <Plus className="mr-1.5 h-4 w-4" />
+                  {creating ? "Creating…" : "Create User"}
+                </Button>
+              </form>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

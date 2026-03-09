@@ -21,6 +21,7 @@ import {
   LogOut,
   Brain,
   ClipboardList,
+  UserPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,7 @@ const workerNav = [
 const hrNav = [
   { title: "Candidates", url: "/hr", icon: Users },
   { title: "Analytics", url: "/hr/analytics", icon: BarChart3 },
+  { title: "Manage Users", url: "/hr/users", icon: UserPlus },
 ];
 
 export function AppSidebar() {

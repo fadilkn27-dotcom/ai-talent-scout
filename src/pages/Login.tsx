@@ -1,21 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Brain, User, Code2, Shield } from "lucide-react";
+import { Brain } from "lucide-react";
 import { useAuth, UserRole } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
-const roles: { value: UserRole; label: string; description: string; icon: React.ElementType }[] = [
-  { value: "client", label: "Task Creator", description: "Create & manage assessments", icon: User },
-  { value: "worker", label: "Candidate", description: "Take coding challenges", icon: Code2 },
-  { value: "hr", label: "HR Admin", description: "Review & hire talent", icon: Shield },
-];
+
 
 export default function Login() {
-  const [selectedRole, setSelectedRole] = useState<UserRole>("client");
+  const [selectedRole] = useState<UserRole>("worker");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -85,25 +80,6 @@ export default function Login() {
             </p>
           </div>
 
-          {isSignup && (
-            <div className="mb-5 grid grid-cols-3 gap-2">
-              {roles.map((r) => (
-                <button
-                  key={r.value}
-                  onClick={() => setSelectedRole(r.value)}
-                  className={cn(
-                    "flex flex-col items-center gap-1.5 rounded-md border p-3 text-center transition-all",
-                    selectedRole === r.value
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/30"
-                  )}
-                >
-                  <r.icon className={cn("h-4 w-4", selectedRole === r.value ? "text-primary" : "text-muted-foreground")} />
-                  <span className={cn("text-xs font-medium", selectedRole === r.value ? "text-primary" : "text-foreground")}>{r.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-3">
             {isSignup && (
