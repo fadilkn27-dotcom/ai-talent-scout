@@ -80,25 +80,6 @@ export default function Login() {
             </p>
           </div>
 
-          {isSignup && (
-            <div className="mb-5 grid grid-cols-3 gap-2">
-              {roles.map((r) => (
-                <button
-                  key={r.value}
-                  onClick={() => setSelectedRole(r.value)}
-                  className={cn(
-                    "flex flex-col items-center gap-1.5 rounded-md border p-3 text-center transition-all",
-                    selectedRole === r.value
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/30"
-                  )}
-                >
-                  <r.icon className={cn("h-4 w-4", selectedRole === r.value ? "text-primary" : "text-muted-foreground")} />
-                  <span className={cn("text-xs font-medium", selectedRole === r.value ? "text-primary" : "text-foreground")}>{r.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-3">
             {isSignup && (
